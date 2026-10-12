@@ -333,3 +333,61 @@ body[dir="rtl"] .legal-page > h1 { letter-spacing: 0; line-height: 1.5; }
   .hero-scene { min-height: 110svh; padding-block: 105px 70px; }
   .map-scene { min-height: 135svh; }
 }
+
+/* VoyageGo's scroll narrative: one pinned, uninterrupted landscape. */
+.immersive-page { min-height: 0; background: radial-gradient(ellipse at 54% 38%, color-mix(in srgb, var(--sky) 20%, transparent), transparent 48%), linear-gradient(150deg, var(--paper), var(--paper-warm) 54%, var(--paper)); }
+.journey-track { position: relative; height: 340svh; }
+.journey-stage { position: sticky; top: 0; height: 100svh; min-height: 620px; overflow: clip; isolation: isolate; }
+#globe-host { position: absolute; z-index: 0; inset: 0; }
+#globe-interaction { position: absolute; z-index: 3; left: 50%; top: 50%; width: 10px; height: 10px; border-radius: 50%; transform: translate(-50%,-50%); pointer-events: none; touch-action: pan-y; cursor: grab; }
+body.map-active #globe-interaction { pointer-events: auto; }
+#globe-interaction:active { cursor: grabbing; }
+.scene-brand { position: absolute; z-index: 2; top: 50%; left: 50%; inset-inline-start: auto; display: block; width: min(86vw, 860px); max-height: 50svh; object-fit: contain; transform: translate(-50%,-50%); opacity: calc(1 - clamp(0, (var(--journey-progress, 0) - .025) * 9, 1)); transition: opacity .08s linear; }
+.hero-copy { position: absolute; z-index: 2; top: 50%; left: 50%; width: min(90vw, 740px); margin: 0; text-align: center; transform: translate(-50%,-50%); opacity: clamp(0, 1 - var(--journey-progress, 0) * 9, 1); pointer-events: none; }
+.hero-tagline { margin: 0 0 12px; color: var(--horizon); font-size: clamp(.78rem,1.3vw,1rem); font-weight: 650; letter-spacing: .14em; text-transform: uppercase; }
+.hero-copy h1 { margin: 0; font-size: clamp(2.4rem, 6vw, 5.4rem); font-weight: 520; letter-spacing: -.055em; line-height: 1.08; text-wrap: balance; }
+body[dir="rtl"] .hero-copy h1 { letter-spacing: 0; line-height: 1.4; }
+.stage-steps { position: absolute; z-index: 2; inset: 50% 0 auto; display: flex; justify-content: center; gap: clamp(28px,7vw,110px); margin: 0; padding: 0 24px; list-style: none; transform: translateY(-50%); opacity: clamp(0, min((var(--journey-progress, 0) - .17) * 8, (.68 - var(--journey-progress, 0)) * 8), 1); pointer-events: none; }
+.stage-steps li { display: grid; gap: 7px; max-width: 245px; color: var(--ink); font-size: clamp(1.1rem,2.3vw,2rem); font-weight: 540; letter-spacing: -.03em; text-shadow: 0 1px 18px var(--paper); }
+.stage-steps li small { color: var(--ink-soft); font-size: clamp(.76rem,1vw,.92rem); font-weight: 400; letter-spacing: 0; line-height: 1.55; }
+.stage-steps li:nth-child(2) { transform: translateY(-38px); }
+.stage-steps li::before { display: inline-block; width: 7px; height: 7px; margin-inline-end: 10px; border-radius: 50%; background: var(--sun); content: ""; vertical-align: middle; }
+.map-copy { position: absolute; z-index: 4; inset-inline-start: clamp(24px,7vw,110px); top: 50%; width: min(35vw,440px); margin: 0; transform: translateY(-50%); opacity: clamp(0,min((var(--journey-progress, 0) - .63) * 8,1),1); pointer-events: auto; }
+.map-copy h2 { margin: 0 0 20px; font-size: clamp(2.2rem,4vw,4.1rem); font-weight: 520; letter-spacing: -.045em; line-height: 1.12; text-wrap: balance; }
+body[dir="rtl"] .map-copy h2 { letter-spacing: 0; line-height: 1.5; }
+.map-title-emphasis { color: var(--horizon); }
+@media (prefers-color-scheme: dark) { .map-title-emphasis { color: #a9d1bd; } }
+.country-picker-label { display: block; margin: 20px 0 8px; font-size: .87rem; font-weight: 650; }
+#country-picker { display: block; width: min(100%,400px); min-height: 52px; padding: 0 15px; border: 1px solid var(--line); border-radius: 16px; color: var(--ink); background: var(--glass-strong); }
+.map-attribution { margin: 18px 0 0; color: var(--ink-soft); font-size: .67rem; }
+.country-popup { position: relative; inset: auto; width: min(100%,400px); margin-top: 13px; padding: 15px 16px; border: 1px solid var(--line); border-radius: 18px; color: var(--ink); background: var(--glass); -webkit-backdrop-filter: blur(20px); backdrop-filter: blur(20px); box-shadow: 0 12px 34px rgba(14,55,51,.10); }
+.country-popup .popup-close { display: none; }
+.atlas-fallback { position: absolute; z-index: 1; left: 55%; top: 50%; width: min(45vw,600px); transform: translate(-50%,-50%); }
+.site-footer { position: relative; z-index: 5; }
+.footer-meta { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+.back-top { display: grid; width: 44px; height: 44px; place-items: center; border: 1px solid rgba(255,255,255,.26); border-radius: 50%; color: var(--footer-text); background: rgba(255,255,255,.08); opacity: 0; pointer-events: none; transition: opacity .2s ease, transform .2s ease; transform: translateY(6px); }
+.back-top.is-visible { opacity: 1; pointer-events: auto; transform: none; }
+.back-top svg { width: 19px; height: 19px; }
+.legal-sections a { color: inherit; text-underline-offset: .18em; }
+@media (max-width:800px) {
+ .journey-track { height: 320svh; }
+ .journey-stage { min-height: 560px; }
+ .scene-brand { width: min(90vw,520px); max-height: 35svh; }
+ .hero-copy { top: 31%; width: calc(100% - 36px); }
+ .hero-tagline { font-size: .72rem; }
+ .hero-copy h1 { font-size: clamp(2.15rem,9.2vw,3.7rem); }
+ .stage-steps { inset-block-start: 48%; flex-direction: column; align-items: center; gap: 18px; }
+ .stage-steps li:nth-child(2) { transform: none; }
+ .stage-steps li { width: min(100%,330px); max-width: none; font-size: 1.05rem; text-align: center; }
+ .stage-steps li small { font-size: .78rem; }
+ .map-copy { inset-inline: 18px; top: auto; bottom: max(18px,env(safe-area-inset-bottom)); width: auto; padding: 18px; border: 1px solid var(--line); border-radius: 24px; background: color-mix(in srgb,var(--paper) 88%,transparent); -webkit-backdrop-filter: blur(18px); backdrop-filter: blur(18px); transform: none; }
+ .map-copy h2 { max-width: 440px; margin-bottom: 8px; font-size: clamp(1.8rem,7.5vw,2.65rem); }
+ .country-picker-label { margin-top: 10px; font-size: .79rem; }
+ #country-picker { min-height: 48px; }
+ .map-attribution { margin-top: 9px; font-size: .6rem; }
+ .country-popup { position: absolute; bottom: calc(100% + 8px); inset-inline: 0; width: auto; margin: 0; }
+ .atlas-fallback { left: 50%; top: 38%; width: 86vw; }
+}
+@media (prefers-reduced-motion: reduce) {
+ .scene-brand,.hero-copy,.stage-steps,.map-copy { transition: none; }
+}

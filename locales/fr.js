@@ -5,7 +5,7 @@ export default {
   description: 'VoyageGo vous ouvre les portes de ses destinations nationales. Choisissez un pays et découvrez son univers.',
   tag: 'Le monde vous attend.', intro: 'Un monde à explorer, pays après pays.',
   cta: 'Commencer votre voyage', scroll: 'Défiler pour explorer',
-  mapEyebrow: 'Un monde de possibilités', mapTitle: 'Le monde à portée de regard',
+  mapEyebrow: 'Un monde de possibilités', mapTitle: 'Le monde à portée de regard', mapTitleEmphasis: 'Choisissez', mapTitleRest: 'votre prochaine destination.',
   mapIntro: 'Touchez le globe, ou choisissez un pays dans la liste.',
   comingSoonMessage: 'Cette plateforme nationale sera annoncée lorsqu’elle sera prête.',
   mapLabel: 'Globe terrestre interactif et relief topographique mondial',
@@ -30,34 +30,34 @@ export default {
   language: 'Langue', chooseLanguage: 'Choisir une langue', menu: 'Navigation principale', top: 'Retour en haut',
   skip: 'Aller au contenu principal', notFound: 'Cette page est introuvable.',
   footerLabel: 'Informations et liens utiles', footerLead: '',
-  legalHeading: 'Informations', draft: 'Informations à compléter avant l’ouverture publique.',
+  legalHeading: 'Informations', draft: '',
   footerNote: '',
   legal: [
     { id: 'legal-notice', label: 'Mentions légales' },
     { id: 'privacy', label: 'Données personnelles' },
     { id: 'cookies', label: 'Cookies et préférences' },
     { id: 'terms', label: 'Conditions d’utilisation' },
-    { id: 'contact', label: 'Contact' },
+    { id: 'contact', label: 'Contact' }, { id: 'advertising', label: 'Publicité' },
   ],
   home: 'Accueil', close: 'Fermer', gotIt: 'Compris', resetLanguage: 'Effacer ma préférence de langue',
   legalPages: {
     'legal-notice': {
       title: 'Mentions légales',
-      intro: 'Cette page présente les informations relatives à l’éditeur et à l’hébergement de VoyageGo. Les champs entre crochets doivent être complétés et vérifiés avant l’ouverture publique.',
+      intro: 'VoyageGo est un portail de découverte publié sur GitHub Pages. Les informations ci-dessous décrivent uniquement les éléments vérifiables dans cette version du site.',
       sections: [
-        ['Éditeur du site', 'Raison sociale : [À compléter]. Forme juridique : [À compléter]. Adresse du siège : [À compléter]. Numéro d’immatriculation : [À compléter]. Directeur ou directrice de publication : [À compléter].'],
-        ['Hébergement', 'Le site est publié avec GitHub Pages. Fournisseur et coordonnées de contact : GitHub, Inc., à confirmer selon les conditions et informations légales actuellement applicables.'],
-        ['Propriété intellectuelle', 'Le nom, le logo et les contenus de VoyageGo sont à utiliser selon les autorisations détenues par l’éditeur. Titulaire des droits et demandes d’autorisation : [À compléter].'],
+        ['Éditeur du site', 'L’identité juridique, la forme, l’adresse et le responsable de publication de l’entité exploitante ne sont pas confirmés dans les informations disponibles. Contact général : aetbconseil@gmail.com.'],
+        ['Hébergement', 'Cette version du site est publiée par GitHub Pages. Les conditions et informations du fournisseur s’appliquent à son service.'],
+        ['Propriété intellectuelle', 'Le nom, le logo, les textes et les visuels sont protégés selon les droits détenus par leurs titulaires. Pour toute demande relative aux contenus VoyageGo, écrivez à aetbconseil@gmail.com.'],
       ],
     },
     privacy: {
       title: 'Données personnelles',
       intro: 'VoyageGo est un portail de découverte. Le module de compte reste désactivé tant que son fournisseur d’identité n’est pas configuré. Avant activation, l’exploitant doit compléter cet avis avec les données de compte, le fournisseur, les durées de conservation et les finalités du traitement.',
       sections: [
-        ['Responsable du traitement', 'Identité et coordonnées du responsable : [À compléter par l’entité exploitante]. Contact pour les demandes relatives aux données : [À compléter].'],
+        ['Responsable du traitement', 'L’entité juridique responsable n’est pas identifiée dans les informations de projet disponibles. Pour toute demande relative aux données, contactez aetbconseil@gmail.com.'],
         ['Préférence de langue et compte', 'Le choix de langue est mémorisé dans le stockage local sous « voyagego-language ». Lorsque le compte sera activé, le client d’authentification utilisera aussi ce stockage pour maintenir la session. Ce stockage est strictement nécessaire à la connexion et ne sert pas à la publicité ou à la mesure d’audience. L’exploitant doit compléter les finalités, la base légale, les durées, les destinataires, les transferts et les droits avant activation.'],
         ['Hébergement et journaux techniques', 'GitHub Pages héberge le site. Le fournisseur peut traiter des données techniques de connexion, telles que l’adresse IP, selon ses propres conditions et sa politique de confidentialité. L’éditeur doit confirmer les durées, destinataires, transferts et modalités applicables avant publication.'],
-        ['Vos droits et durée de conservation', 'Les demandes d’accès, de rectification, d’effacement ou autres droits applicables sont à adresser à [contact à compléter]. Les règles de conservation et l’autorité de contrôle compétente doivent être précisées par l’entité exploitante selon les juridictions concernées.'],
+        ['Vos droits et durée de conservation', 'Vous pouvez écrire à aetbconseil@gmail.com pour toute demande relative à vos données. Aucune durée de compte n’est applicable dans cette version, car le compte est désactivé. Les droits et autorités compétentes dépendent de la juridiction applicable.'],
       ],
     },
     cookies: {
@@ -66,7 +66,7 @@ export default {
       sections: [
         ['Préférence de langue', 'Le choix manuel de langue est conservé dans le stockage local du navigateur (localStorage), sous la clé « voyagego-language ». Il ne s’agit pas d’un cookie. La langue préférée du navigateur est utilisée si aucun choix manuel n’existe.'],
         ['Gérer votre choix', 'Utilisez le bouton ci-dessous pour effacer uniquement la préférence de langue enregistrée par VoyageGo. Le prochain affichage suivra la langue de votre navigateur, avec le français comme langue de secours.'],
-        ['Hébergement', 'Le fournisseur GitHub Pages peut employer ses propres mécanismes techniques lors de votre visite. Consultez les informations du fournisseur pour connaître ses traitements. Les coordonnées et obligations de l’éditeur de VoyageGo restent à compléter.'],
+        ['Hébergement', 'Le site est publié sur GitHub Pages. Consultez la politique de confidentialité de GitHub pour les traitements liés à son hébergement. Aucun outil facultatif de suivi ou de publicité n’est activé par cette version de VoyageGo.'],
       ], action: 'reset-language',
     },
     terms: {
@@ -75,16 +75,17 @@ export default {
       sections: [
         ['État du service', 'L’accès au compte VoyageGo fonctionne uniquement si le fournisseur d’identité est configuré. Tant que le service est indiqué comme indisponible, aucune inscription, connexion ou session n’est créée. Les réservations et la préparation de voyage ne sont pas proposées par ce portail.'],
         ['Liens vers des plateformes nationales', 'MarocoGO est un site distinct, régi par ses propres informations et conditions. Un lien vers un autre site vous fait quitter VoyageGo. Les plateformes affichées comme prochainement disponibles ne sont pas présentées comme opérationnelles.'],
-        ['Éditeur et droit applicable', 'Identité de l’exploitant, droit applicable, juridiction compétente, responsabilités et modalités de réclamation : [À compléter et faire vérifier par l’entité exploitante avant publication].'],
+        ['Éditeur et droit applicable', 'L’identité de l’exploitant et la juridiction applicable ne sont pas établies par les informations disponibles. Pour toute question concernant le portail, contactez aetbconseil@gmail.com.'],
       ],
     },
     contact: {
       title: 'Contact',
-      intro: 'Les coordonnées de l’équipe VoyageGo seront affichées après validation par l’entité exploitante.',
+      intro: 'Pour contacter l’équipe VoyageGo au sujet de ce portail, utilisez l’adresse e-mail ci-dessous.',
       sections: [
-        ['Contact général', 'Adresse e-mail : [À compléter]. Adresse postale : [À compléter, si nécessaire].'],
-        ['Données personnelles', 'Pour une demande concernant vos données, contactez le responsable de traitement à : [Adresse de contact à compléter].'],
+        ['Contact général', 'Adresse e-mail : aetbconseil@gmail.com.'],
+        ['Données personnelles', 'Pour une demande concernant vos données, écrivez à aetbconseil@gmail.com.'],
       ],
     },
+    advertising: { title: 'Publicité', intro: 'Aucune publicité n’est diffusée par cette version de VoyageGo.', sections: [['État actuel', 'Google AdSense et les autres outils publicitaires ne sont pas configurés. Aucun script publicitaire ni cookie publicitaire facultatif n’est chargé.'], ['Évolutions futures', 'Toute activation future nécessitera la configuration réelle du service, des informations de l’éditeur et d’un mécanisme de consentement adapté aux pays concernés.']] },
   },
 };

@@ -5,7 +5,7 @@ export default {
   description: 'VoyageGo opens the door to national destinations. Choose a country and discover its world.',
   tag: 'The world is waiting.', intro: 'One world to explore, country by country.',
   cta: 'Start your journey', scroll: 'Scroll to explore',
-  mapEyebrow: 'A world of possibilities', mapTitle: 'The world, within reach',
+  mapEyebrow: 'A world of possibilities', mapTitle: 'The world, within reach', mapTitleEmphasis: 'Choose', mapTitleRest: 'your next destination.',
   mapIntro: 'Touch the globe, or choose a country from the list.',
   comingSoonMessage: 'This national platform will be announced when it is ready.',
   mapLabel: 'Interactive Earth globe with global topographic relief',
@@ -37,27 +37,27 @@ export default {
     { id: 'privacy', label: 'Personal data' },
     { id: 'cookies', label: 'Cookies and preferences' },
     { id: 'terms', label: 'Terms of use' },
-    { id: 'contact', label: 'Contact' },
+    { id: 'contact', label: 'Contact' }, { id: 'advertising', label: 'Advertising' },
   ],
   home: 'Home', close: 'Close', gotIt: 'Got it', resetLanguage: 'Clear my language preference',
   legalPages: {
     'legal-notice': {
       title: 'Legal notice',
-      intro: 'This page provides information about the publisher and hosting of VoyageGo. Bracketed fields must be completed and checked before public launch.',
+      intro: 'VoyageGo is a discovery portal published on GitHub Pages. The information below describes only details verifiable in this version of the site.',
       sections: [
-        ['Website publisher', 'Legal name: [To be completed]. Legal form: [To be completed]. Registered address: [To be completed]. Registration number: [To be completed]. Editorial director: [To be completed].'],
-        ['Hosting', 'The site is published with GitHub Pages. Provider details and contact information: GitHub, Inc., subject to confirmation against the terms and legal information currently in force.'],
-        ['Intellectual property', 'The VoyageGo name, logo and content must be used in accordance with the publisher’s rights. Rights holder and permission requests: [To be completed].'],
+        ['Website publisher', 'The operating entity’s legal identity, form, address and publishing lead are not confirmed in the available project information. General contact: aetbconseil@gmail.com.'],
+        ['Hosting', 'This version of the website is published with GitHub Pages. The provider’s terms and information apply to its service.'],
+        ['Intellectual property', 'The VoyageGo name, logo, text and imagery are protected according to the rights held by their owners. For content enquiries, contact aetbconseil@gmail.com.'],
       ],
     },
     privacy: {
       title: 'Personal data',
       intro: 'VoyageGo is a discovery portal. The account module remains disabled until its identity provider is configured. Before activation, the operator must complete this notice with account data, the provider, retention periods, and processing purposes.',
       sections: [
-        ['Data controller', 'Controller identity and contact details: [To be completed by the operating entity]. Contact for data requests: [To be completed].'],
+        ['Data controller', 'The legal identity of the responsible entity is not established in the available project information. For data enquiries, contact aetbconseil@gmail.com.'],
         ['Language preference and account', 'Your language choice is stored in local storage under “voyagego-language”. When accounts are enabled, the authentication client will also use local storage to persist the session. This storage is strictly necessary for sign-in and is not used for advertising or audience measurement. Before activation, the operator must specify purposes, legal basis, retention, recipients, transfers, and applicable rights.'],
         ['Hosting and technical logs', 'GitHub Pages hosts the site. The provider may process technical connection data, such as IP addresses, under its own terms and privacy policy. Before publication, the operator must confirm applicable retention periods, recipients, transfers and procedures.'],
-        ['Your rights and retention', 'Requests to access, correct or erase personal data, or exercise other applicable rights, can be sent to [contact to be completed]. The operator must specify retention rules and the relevant supervisory authority for the jurisdictions concerned.'],
+        ['Your rights and retention', 'You may contact aetbconseil@gmail.com with a data request. No account retention period applies to this version because account access is disabled. Applicable rights and authorities depend on the relevant jurisdiction.'],
       ],
     },
     cookies: {
@@ -66,7 +66,7 @@ export default {
       sections: [
         ['Language preference', 'A manually selected language is saved in browser local storage under the key “voyagego-language”. It is not a cookie. If there is no manual choice, the browser’s preferred language is used.'],
         ['Manage your choice', 'Use the button below to clear only the language preference saved by VoyageGo. The next visit will follow your browser language, with French as the fallback.'],
-        ['Hosting', 'GitHub Pages may use its own technical mechanisms when you visit. Consult the provider’s information for details of its processing. VoyageGo’s operator details and obligations still need to be completed.'],
+        ['Hosting', 'The site is published on GitHub Pages. Consult GitHub’s privacy information for processing related to its hosting service. This VoyageGo version enables no optional tracking or advertising tool.'],
       ], action: 'reset-language',
     },
     terms: {
@@ -75,16 +75,17 @@ export default {
       sections: [
         ['Service availability', 'VoyageGo account access works only when the identity provider is configured. While the service is shown as unavailable, no registration, sign-in, or session is created. This portal does not offer bookings or trip planning.'],
         ['Links to national platforms', 'MarocoGO is a separate website governed by its own information and terms. A link to another website takes you away from VoyageGo. Platforms marked as coming soon are not represented as operational.'],
-        ['Publisher and governing law', 'Operator identity, governing law, jurisdiction, liability and complaint procedures: [To be completed and checked by the operating entity before publication].'],
+        ['Publisher and governing law', 'The operator identity and applicable jurisdiction are not established by the available information. For questions about this portal, contact aetbconseil@gmail.com.'],
       ],
     },
     contact: {
       title: 'Contact',
-      intro: 'VoyageGo team contact details will be published once approved by the operating entity.',
+      intro: 'To contact the VoyageGo team about this portal, use the email address below.',
       sections: [
-        ['General enquiries', 'Email address: [To be completed]. Postal address: [To be completed, if required].'],
-        ['Personal data', 'For a data request, contact the data controller at: [Contact address to be completed].'],
+        ['General enquiries', 'Email address: aetbconseil@gmail.com.'],
+        ['Personal data', 'For a data request, email aetbconseil@gmail.com.'],
       ],
     },
+    advertising: { title: 'Advertising', intro: 'This version of VoyageGo does not display advertising.', sections: [['Current status', 'Google AdSense and other advertising tools are not configured. No advertising script or optional advertising cookie is loaded.'], ['Future changes', 'Any future activation requires a real service configuration, publisher information, and a consent mechanism appropriate for the countries concerned.']] },
   },
 };

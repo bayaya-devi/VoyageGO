@@ -95,40 +95,36 @@ function destinationOptions(copy) {
 }
 
 function homeContent(copy) {
-  const stepIcons = ['compass', 'route', 'landscape'];
+  const stepNames = copy.steps.map((step) => `<li><span>${escapeHtml(step.title)}</span><small>${escapeHtml(step.text)}</small></li>`).join('');
+  const legalLinks = copy.legal.map((link) => `<li><a href="${escapeHtml(legalUrl(copy.lang, link.id))}" data-legal="${link.id}">${escapeHtml(link.label)}</a></li>`).join('');
   return `<main id="main-content" tabindex="-1" class="immersive-page">
-    <div id="globe-host" aria-hidden="true"></div>
-    <div id="globe-interaction" aria-hidden="true"></div>
-    <p id="globe-status" class="sr-only" role="status" aria-live="polite"></p>
-    <p id="country-announcement" class="sr-only" role="status" aria-live="polite"></p>
-    <a class="scene-brand" href="${escapeHtml(homeUrl(copy.lang))}" aria-label="VoyageGo — ${escapeHtml(copy.home)}"><img src="${new URL('voyagego-logo-2x.png', document.baseURI).href}" width="1086" height="362" alt="VoyageGo"></a>
-    <section class="hero-scene" id="hero" aria-labelledby="hero-title">
-      <div class="hero-copy reveal"><p class="eyebrow">${escapeHtml(copy.tag)}</p><h1 id="hero-title">${escapeHtml(copy.title)}</h1><p class="hero-intro">${escapeHtml(copy.intro)}</p><a class="scroll-prompt" href="#story">${escapeHtml(copy.scroll)} ${icon('arrow')}</a></div>
-      <span class="hero-coordinate" aria-hidden="true">31° 47′ N&nbsp;&nbsp; 7° 05′ W</span>
-    </section>
-    <section class="story-scene" id="story" aria-labelledby="story-title">
-      <div class="story-copy"><p class="eyebrow">${escapeHtml(copy.storyEyebrow)}</p><h2 id="story-title">${escapeHtml(copy.storyTitle)}</h2>
-        <ol class="journey-steps" aria-label="${escapeHtml(copy.stepLabel)}">${copy.steps.map((step, index) => `<li class="journey-step reveal"><span class="step-glyph">${icon(stepIcons[index])}</span><div><h3>${escapeHtml(step.title)}</h3><p>${escapeHtml(step.text)}</p></div><span class="step-index">0${index + 1}</span></li>`).join('')}</ol>
+    <div class="journey-track" id="journey-track">
+      <div class="journey-stage" id="journey-stage" data-progress="0">
+        <div id="globe-host" aria-hidden="true"></div>
+        <div id="globe-interaction" aria-hidden="true"></div>
+        <p id="globe-status" class="sr-only" role="status" aria-live="polite"></p>
+        <p id="country-announcement" class="sr-only" role="status" aria-live="polite"></p>
+        <img class="scene-brand" id="scene-brand" src="${new URL('voyagego-logo-2x.png', document.baseURI).href}" width="1086" height="362" alt="VoyageGo">
+        <div class="hero-copy" id="scene-welcome" aria-labelledby="hero-title">
+          <p class="hero-tagline">${escapeHtml(copy.tag)}</p><h1 id="hero-title">${escapeHtml(copy.title)}</h1>
+        </div>
+        <ol class="stage-steps" id="scene-steps" aria-label="${escapeHtml(copy.stepLabel)}" aria-hidden="true">${stepNames}</ol>
+        <section class="map-copy" id="map-section" aria-labelledby="map-title" aria-hidden="true" inert>
+          <h2 id="map-title"><span class="map-title-emphasis">${escapeHtml(copy.mapTitleEmphasis)}</span> ${escapeHtml(copy.mapTitleRest)}</h2>
+          <label class="country-picker-label" for="country-picker">${escapeHtml(copy.countrySelectLabel)}</label>
+          <select id="country-picker"><option value="">${escapeHtml(copy.countryPrompt)}</option>${destinationOptions(copy)}</select>
+          <div id="map-fallback" data-map-label="${escapeHtml(copy.mapLabel)}" hidden></div>
+          <aside id="country-popup" class="country-popup" aria-label="${escapeHtml(copy.countryDetails)}" hidden></aside>
+          <p class="map-attribution">${escapeHtml(copy.mapAttribution)}</p>
+        </section>
       </div>
-      <span class="story-orbit" aria-hidden="true"></span>
-    </section>
-    <section class="map-scene" id="map-section" aria-labelledby="map-title">
-      <div class="map-copy"><p class="eyebrow">${escapeHtml(copy.mapEyebrow)}</p><h2 id="map-title">${escapeHtml(copy.mapTitle)}</h2><p>${escapeHtml(copy.mapIntro)}</p>
-        <label class="country-picker-label" for="country-picker">${escapeHtml(copy.countrySelectLabel)}</label>
-        <select id="country-picker" aria-label="${escapeHtml(copy.countrySelectLabel)}"><option value="">${escapeHtml(copy.countryPrompt)}</option>${destinationOptions(copy)}</select>
-        <div id="map-fallback" data-map-label="${escapeHtml(copy.mapLabel)}" hidden></div>
-        <nav class="destination-shortcuts" aria-label="${escapeHtml(copy.destinationsLabel)}">${destinationShortcuts(copy)}</nav>
-        <p class="map-attribution">${escapeHtml(copy.mapAttribution)}</p>
-      </div>
-      <aside id="country-popup" class="country-popup" aria-label="${escapeHtml(copy.countryDetails)}" hidden></aside>
-      <span class="map-instruction" aria-hidden="true">${icon('globe')} ${escapeHtml(copy.mapHint)}</span>
-    </section>
+    </div>
     <footer class="site-footer" id="site-footer">
       <div class="footer-main"><a class="footer-brand" href="${escapeHtml(homeUrl(copy.lang))}" aria-label="VoyageGo — ${escapeHtml(copy.home)}"><img src="${new URL('voyagego-logo-2x.png', document.baseURI).href}" width="1086" height="362" alt="VoyageGo"></a>
-        <nav class="footer-nav" aria-label="${escapeHtml(copy.footerLabel)}"><h2>${escapeHtml(copy.legalHeading)}</h2><ul>${copy.legal.map((link) => `<li><a href="${escapeHtml(legalUrl(copy.lang, link.id))}" data-legal="${link.id}">${escapeHtml(link.label)}</a></li>`).join('')}</ul></nav>
-      </div><div class="footer-meta"><span>© ${new Date().getFullYear()} VoyageGo</span></div>
+        <nav class="footer-nav" aria-label="${escapeHtml(copy.footerLabel)}"><h2>${escapeHtml(copy.legalHeading)}</h2><ul>${legalLinks}</ul></nav>
+      </div><div class="footer-meta"><span>© ${new Date().getFullYear()} VoyageGo</span><button type="button" class="back-top" id="back-top" aria-label="${escapeHtml(copy.top)}" title="${escapeHtml(copy.top)}">${icon('up')}</button></div>
     </footer>
-    <div class="floating-controls"><a class="profile-trigger floating-profile" data-profile-link href="${escapeHtml(accountUrl(copy.lang, 'login'))}" aria-label="${escapeHtml(copy.login)}" title="${escapeHtml(copy.login)}">${icon('user')}</a>${languageControl(copy)}<div class="back-top" id="back-top"><button type="button" aria-label="${escapeHtml(copy.top)}" title="${escapeHtml(copy.top)}">${icon('up')}</button></div></div>
+    <div class="floating-controls"><a class="profile-trigger floating-profile" data-profile-link href="${escapeHtml(accountUrl(copy.lang, 'login'))}" aria-label="${escapeHtml(copy.login)}" title="${escapeHtml(copy.login)}">${icon('user')}</a>${languageControl(copy)}</div>
     <div class="notice" id="notice" role="status" aria-live="polite" hidden><span id="notice-text"></span><button id="notice-close" type="button">${escapeHtml(copy.close)}</button></div>
   </main>`;
 }
@@ -136,9 +132,10 @@ function homeContent(copy) {
 function legalContent(copy, docId) {
   const page = copy.legalPages[docId];
   if (!page) return `<main id="main-content" class="legal-page" tabindex="-1"><a href="${escapeHtml(homeUrl(copy.lang))}">${escapeHtml(copy.home)}</a><h1>${escapeHtml(copy.notFound)}</h1></main>`;
+  const emailText = (value) => escapeHtml(value).replace(/aetbconseil@gmail\.com/g, '<a href="mailto:aetbconseil@gmail.com">aetbconseil@gmail.com</a>');
   return `<main id="main-content" class="legal-page" tabindex="-1"><a class="text-link back-link" href="${escapeHtml(homeUrl(copy.lang))}">${icon('arrow')} ${escapeHtml(copy.home)}</a>
-    <p class="eyebrow">${escapeHtml(copy.legalHeading)}</p><h1>${escapeHtml(page.title)}</h1><p class="legal-draft">${escapeHtml(copy.draft)}</p>
-    <p class="legal-intro">${escapeHtml(page.intro)}</p><div class="legal-sections">${page.sections.map(([heading, text]) => `<section><h2>${escapeHtml(heading)}</h2><p>${escapeHtml(text)}</p></section>`).join('')}</div>
+    <p class="eyebrow">${escapeHtml(copy.legalHeading)}</p><h1>${escapeHtml(page.title)}</h1>
+    <p class="legal-intro">${emailText(page.intro)}</p><div class="legal-sections">${page.sections.map(([heading, text]) => `<section><h2>${escapeHtml(heading)}</h2><p>${emailText(text)}</p></section>`).join('')}</div>
     ${page.action === 'reset-language' ? `<button class="secondary-button" id="reset-language" type="button">${escapeHtml(copy.resetLanguage)}</button>` : ''}</main>
     <footer class="site-footer legal-footer" id="site-footer"><div class="footer-main"><a class="footer-brand" href="${escapeHtml(homeUrl(copy.lang))}"><img src="${new URL('voyagego-logo-2x.png', document.baseURI).href}" width="1086" height="362" alt="VoyageGo"></a><nav class="footer-nav" aria-label="${escapeHtml(copy.footerLabel)}"><h2>${escapeHtml(copy.legalHeading)}</h2><ul>${copy.legal.map((link) => `<li><a href="${escapeHtml(legalUrl(copy.lang, link.id))}" data-legal="${link.id}">${escapeHtml(link.label)}</a></li>`).join('')}</ul></nav></div><div class="footer-meta"><span>© ${new Date().getFullYear()} VoyageGo</span></div></footer>
     <div class="floating-controls"><div class="back-top" id="back-top"><button type="button" aria-label="${escapeHtml(copy.top)}">${icon('up')}</button></div></div>`;
@@ -244,7 +241,7 @@ function bind(copy, page) {
     const observer = new IntersectionObserver(([entry]) => backTop.classList.toggle('is-visible', entry.isIntersecting), { rootMargin: '0px 0px 96px 0px' });
     observer.observe(footer);
   }
-  document.querySelector('#back-top button')?.addEventListener('click', () => {
+  document.querySelector('#back-top')?.addEventListener('click', () => {
     window.scrollTo({ top: 0, behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'instant' : 'smooth' });
   });
 }

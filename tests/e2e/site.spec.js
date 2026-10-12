@@ -26,9 +26,12 @@ for (const locale of locales) {
       await expect(page.locator('html')).toHaveAttribute('dir', locale.direction);
       await expect(page.getByRole('heading', { level: 1, name: locale.title })).toBeVisible();
       await expect(page.locator('header')).toHaveCount(0);
-      await expect(page.locator('.scene-brand img')).toBeVisible();
+      await expect(page.locator('.scene-brand')).toBeVisible();
       await expect(page.locator('#country-picker')).toBeVisible();
       await expect.poll(() => page.locator('#country-picker option').count()).toBeGreaterThan(150);
+      await page.evaluate(() => window.scrollTo(0, document.querySelector('#journey-track').offsetTop + (document.querySelector('#journey-track').offsetHeight - innerHeight) * .82));
+      await expect(page.locator('#journey-stage')).toHaveAttribute('data-progress', /^0\.8/);
+      await expect(page.locator('#map-section')).not.toHaveAttribute('inert', '');
 
       await page.locator('#country-picker').selectOption('FRA');
       await expect(page.locator('#country-popup')).toBeVisible();
@@ -135,7 +138,7 @@ test('account signup is localized, keyboard-labelled, and honestly unavailable b
       await expect(page.locator('#password')).toBeVisible();
       await expect(page.locator('#account-form [type="submit"]')).toBeDisabled();
       await expect(page.locator('.account-unavailable')).toBeVisible();
-      await expect(page.locator('.account-footer .footer-nav a')).toHaveCount(5);
+      await expect(page.locator('.account-footer .footer-nav a')).toHaveCount(6);
       const dimensions = await page.evaluate(() => ({ body: document.body.scrollWidth, viewport: document.documentElement.clientWidth }));
       expect(dimensions.body).toBeLessThanOrEqual(dimensions.viewport);
       expect(errors).toEqual([]);

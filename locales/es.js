@@ -5,7 +5,7 @@ export default {
   description: 'VoyageGo conecta a los viajeros con destinos nacionales. Elige un país y descubre su mundo.',
   tag: 'El mundo te espera.', intro: 'Un mundo por explorar, país a país.',
   cta: 'Comienza tu viaje', scroll: 'Desplázate para explorar',
-  mapEyebrow: 'Un mundo de posibilidades', mapTitle: 'El mundo, al alcance de tu mirada',
+  mapEyebrow: 'Un mundo de posibilidades', mapTitle: 'El mundo, al alcance de tu mirada', mapTitleEmphasis: 'Elige', mapTitleRest: 'tu próximo destino.',
   mapIntro: 'Toca el globo o elige un país de la lista.',
   comingSoonMessage: 'Esta plataforma nacional se anunciará cuando esté lista.',
   mapLabel: 'Globo terráqueo interactivo con relieve topográfico mundial',
@@ -35,27 +35,27 @@ export default {
     { id: 'privacy', label: 'Datos personales' },
     { id: 'cookies', label: 'Cookies y preferencias' },
     { id: 'terms', label: 'Condiciones de uso' },
-    { id: 'contact', label: 'Contacto' },
+    { id: 'contact', label: 'Contacto' }, { id: 'advertising', label: 'Publicidad' },
   ],
   home: 'Inicio', close: 'Cerrar', gotIt: 'Entendido', resetLanguage: 'Borrar mi preferencia de idioma',
   legalPages: {
     'legal-notice': {
       title: 'Aviso legal',
-      intro: 'Esta página ofrece información sobre la entidad editora y el alojamiento de VoyageGo. Los campos entre corchetes deben completarse y verificarse antes del lanzamiento público.',
+      intro: 'VoyageGo es un portal de descubrimiento publicado en GitHub Pages. La información siguiente describe únicamente los datos verificables en esta versión.',
       sections: [
-        ['Entidad editora', 'Denominación legal: [Pendiente]. Forma jurídica: [Pendiente]. Domicilio social: [Pendiente]. Número de registro: [Pendiente]. Responsable editorial: [Pendiente].'],
+        ['Entidad editora', 'La identidad jurídica, la forma, el domicilio y la persona responsable de la publicación no están confirmados en la información disponible. Contacto general: aetbconseil@gmail.com.'],
         ['Alojamiento', 'El sitio está publicado mediante GitHub Pages. Proveedor y datos de contacto: GitHub, Inc.; deben confirmarse según las condiciones e información legal vigentes.'],
-        ['Propiedad intelectual', 'El nombre, el logotipo y los contenidos de VoyageGo deben utilizarse conforme a los derechos de la entidad editora. Titular de los derechos y solicitudes de autorización: [Pendiente].'],
+        ['Propiedad intelectual', 'El nombre, el logotipo, los textos y las imágenes de VoyageGo están protegidos conforme a los derechos de sus titulares. Para consultas sobre contenidos, escribe a aetbconseil@gmail.com.'],
       ],
     },
     privacy: {
       title: 'Datos personales',
       intro: 'VoyageGo es un portal de descubrimiento. El módulo de cuenta permanece desactivado hasta configurar su proveedor de identidad. Antes de activarlo, la entidad responsable debe completar este aviso con los datos de cuenta, el proveedor, los plazos de conservación y los fines del tratamiento.',
       sections: [
-        ['Responsable del tratamiento', 'Identidad y datos de contacto del responsable: [Pendiente de completar por la entidad operadora]. Contacto para solicitudes sobre datos: [Pendiente].'],
+        ['Responsable del tratamiento', 'La identidad jurídica de la entidad responsable no está establecida en la información disponible. Para consultas sobre datos, escribe a aetbconseil@gmail.com.'],
         ['Preferencia de idioma y cuenta', 'La elección de idioma se guarda en el almacenamiento local con «voyagego-language». Cuando se activen las cuentas, el cliente de autenticación también usará el almacenamiento local para mantener la sesión. Es un almacenamiento estrictamente necesario para iniciar sesión; no se usa para publicidad ni medición de audiencia. Antes de activarlo, la entidad responsable debe especificar fines, base jurídica, conservación, destinatarios, transferencias y derechos aplicables.'],
         ['Alojamiento y registros técnicos', 'GitHub Pages aloja el sitio. El proveedor puede tratar datos técnicos de conexión, como la dirección IP, conforme a sus propias condiciones y política de privacidad. La entidad editora debe confirmar los plazos, destinatarios, transferencias y procedimientos aplicables.'],
-        ['Derechos y conservación', 'Las solicitudes de acceso, rectificación, supresión u otros derechos aplicables pueden dirigirse a [contacto pendiente]. La entidad operadora debe especificar las reglas de conservación y la autoridad de control competente para las jurisdicciones pertinentes.'],
+        ['Derechos y conservación', 'Puedes escribir a aetbconseil@gmail.com para cualquier solicitud sobre datos. Esta versión no conserva cuentas, pues el acceso a cuentas está desactivado. Los derechos y autoridades aplicables dependen de la jurisdicción correspondiente.'],
       ],
     },
     cookies: {
@@ -64,7 +64,7 @@ export default {
       sections: [
         ['Preferencia de idioma', 'El idioma elegido manualmente se guarda en el almacenamiento local del navegador con la clave «voyagego-language». No es una cookie. Si no existe una elección manual, se utiliza el idioma preferido del navegador.'],
         ['Gestionar tu elección', 'Utiliza el botón siguiente para borrar únicamente la preferencia de idioma guardada por VoyageGo. La próxima visita seguirá el idioma del navegador y utilizará el francés como opción de reserva.'],
-        ['Alojamiento', 'GitHub Pages puede utilizar sus propios mecanismos técnicos durante la visita. Consulta la información del proveedor para conocer sus tratamientos. Aún deben completarse los datos y obligaciones de la entidad editora de VoyageGo.'],
+        ['Alojamiento', 'El sitio se publica en GitHub Pages. Consulta la información de privacidad de GitHub para los tratamientos relacionados con su alojamiento. Esta versión no activa herramientas opcionales de seguimiento o publicidad.'],
       ], action: 'reset-language',
     },
     terms: {
@@ -73,16 +73,17 @@ export default {
       sections: [
         ['Disponibilidad del servicio', 'El acceso a la cuenta VoyageGo solo funciona cuando se configura el proveedor de identidad. Mientras el servicio aparezca como no disponible, no se crean registros, inicios de sesión ni sesiones. Este portal no ofrece reservas ni planificación de viajes.'],
         ['Enlaces a plataformas nacionales', 'MarocoGO es un sitio independiente, sujeto a su propia información y condiciones. Al abrir otro sitio, sales de VoyageGo. Las plataformas marcadas como próximamente disponibles no se presentan como operativas.'],
-        ['Entidad editora y ley aplicable', 'Identidad de la entidad operadora, ley aplicable, jurisdicción, responsabilidades y reclamaciones: [Pendiente de completar y revisar por la entidad operadora antes del lanzamiento].'],
+        ['Entidad editora y ley aplicable', 'La identidad de la entidad operadora y la jurisdicción aplicable no están establecidas con la información disponible. Para consultas sobre este portal, escribe a aetbconseil@gmail.com.'],
       ],
     },
     contact: {
       title: 'Contacto',
-      intro: 'Los datos de contacto del equipo de VoyageGo se publicarán cuando los valide la entidad operadora.',
+      intro: 'Para contactar con el equipo de VoyageGo sobre este portal, utiliza el correo indicado a continuación.',
       sections: [
-        ['Consultas generales', 'Correo electrónico: [Pendiente]. Dirección postal: [Pendiente, si corresponde].'],
-        ['Datos personales', 'Para una solicitud sobre tus datos, contacta con el responsable del tratamiento en: [Dirección pendiente].'],
+        ['Consultas generales', 'Correo electrónico: aetbconseil@gmail.com.'],
+        ['Datos personales', 'Para una solicitud sobre tus datos, escribe a aetbconseil@gmail.com.'],
       ],
     },
+    advertising: { title: 'Publicidad', intro: 'Esta versión de VoyageGo no muestra publicidad.', sections: [['Estado actual', 'Google AdSense y otras herramientas publicitarias no están configuradas. No se carga ningún script publicitario ni cookie publicitaria opcional.'], ['Cambios futuros', 'Cualquier activación futura requerirá configurar un servicio real, identificar al editor y disponer de un mecanismo de consentimiento adecuado para los países afectados.']] },
   },
 };

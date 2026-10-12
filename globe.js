@@ -132,7 +132,8 @@ export async function mountGlobe(copy) {
     }
     const geometry = new THREE.BufferGeometry();
     geometry.setAttribute('position', new THREE.Float32BufferAttribute(vertices, 3));
-    selectedOutline = new THREE.LineSegments(geometry, new THREE.LineBasicMaterial({ color: destinationByIso.has(feature.properties.iso3) ? 0xf3bd72 : 0x86c5d8, transparent: true, opacity: 0.95 }));
+    const destination = destinationByIso.get(feature.properties.iso3);
+    selectedOutline = new THREE.LineSegments(geometry, new THREE.LineBasicMaterial({ color: destination?.status === 'available' ? 0xf3bd72 : 0x86c5d8, transparent: true, opacity: 0.95 }));
     globe.add(selectedOutline);
   };
 
@@ -238,15 +239,17 @@ export async function mountGlobe(copy) {
 
   const raycaster = new THREE.Raycaster();
   const pointer = new THREE.Vector2();
-  const popupPlace = { x: window.innerWidth * 0.5, y: window.innerHeight * 0.48 };
+  const track = document.querySelector('#journey-track');
+  const stage = document.querySelector('#journey-stage');
   let pointerDown = null;
   let dragged = false;
-  let hoveredIso = '';
   let lastFrame = 0;
   let active = true;
+  let progress = 0;
+  let dragX = 0;
+  let dragY = 0;
   const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
-  const baseRotation = { y: 0, x: -0.04 };
-  globe.rotation.set(baseRotation.x, baseRotation.y, 0);
+  globe.rotation.set(-0.04, 0, 0);
 
   const pickFeature = (event) => {
     const rect = renderer.domElement.getBoundingClientRect();
@@ -260,103 +263,108 @@ export async function mountGlobe(copy) {
     return featureAtPoint(features, longitude, latitude);
   };
 
-  interaction.addEventListener('pointerdown', (event) => {
-    pointerDown = { x: event.clientX, y: event.clientY, rotationY: globe.rotation.y, rotationX: globe.rotation.x };
-    dragged = false;
-    interaction.setPointerCapture(event.pointerId);
+  const pose = (x, y, diameter) => ({
+    x: (x - .5) * camera.position.z * 2 * Math.tan(37 * radians / 2) * window.innerWidth / window.innerHeight,
+    y: (.5 - y) * camera.position.z * 2 * Math.tan(37 * radians / 2),
+    scale: diameter * Math.tan(37 * radians / 2) * camera.position.z,
   });
-  interaction.addEventListener('pointermove', (event) => {
-    if (pointerDown && event.buttons) {
-      const dx = event.clientX - pointerDown.x;
-      const dy = event.clientY - pointerDown.y;
-      if (Math.abs(dx) + Math.abs(dy) > 5) dragged = true;
-      globe.rotation.y = pointerDown.rotationY + dx * 0.005;
-      globe.rotation.x = THREE.MathUtils.clamp(pointerDown.rotationX + dy * 0.003, -1.1, 1.1);
-      return;
-    }
-    if (event.pointerType === 'mouse') {
-      const feature = pickFeature(event);
-      const iso = feature?.properties.iso3 || '';
-      interaction.classList.toggle('is-pointing-at-country', Boolean(iso));
-      if (iso && iso !== hoveredIso) {
-        hoveredIso = iso;
-        const rect = renderer.domElement.getBoundingClientRect();
-        setCountry(feature, { position: { x: event.clientX, y: event.clientY }, announce: false });
-      }
-    }
-  });
-  interaction.addEventListener('pointerup', (event) => {
-    if (!dragged && pointerDown) {
-      const feature = pickFeature(event);
-      if (feature) setCountry(feature, { position: { x: event.clientX, y: event.clientY } });
-    }
-    pointerDown = null;
-  });
-  interaction.addEventListener('pointercancel', () => { pointerDown = null; });
-
+  const updateScrollTarget = () => {
+    const range = Math.max(1, track.offsetHeight - window.innerHeight);
+    progress = THREE.MathUtils.clamp((window.scrollY - track.offsetTop) / range, 0, 1);
+    stage.dataset.progress = progress.toFixed(3);
+    stage.style.setProperty('--journey-progress', progress.toFixed(4));
+    const selecting = progress >= .76 && progress < .995;
+    document.body.classList.toggle('map-active', selecting);
+    mapSection.setAttribute('aria-hidden', String(!selecting));
+    if (selecting) mapSection.removeAttribute('inert'); else mapSection.setAttribute('inert', '');
+    if (!selecting) interaction.classList.remove('is-pointing-at-country');
+  };
+  const placeInteraction = () => {
+    const projected = globe.position.clone().project(camera);
+    const cx = (projected.x * .5 + .5) * window.innerWidth;
+    const cy = (-projected.y * .5 + .5) * window.innerHeight;
+    const edge = new THREE.Vector3(globe.position.x + globe.scale.x, globe.position.y, globe.position.z).project(camera);
+    const ex = (edge.x * .5 + .5) * window.innerWidth;
+    const diameter = Math.max(12, Math.hypot(ex - cx, (edge.y - projected.y) * window.innerHeight * .5) * 2);
+    interaction.style.left = `${cx}px`;
+    interaction.style.top = `${cy}px`;
+    interaction.style.width = `${diameter}px`;
+    interaction.style.height = `${diameter}px`;
+  };
   const resize = () => {
     const width = window.innerWidth;
     const height = window.innerHeight;
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, width < 700 ? 1.15 : 1.35));
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, width < 700 ? 1 : 1.25));
     renderer.setSize(width, height, false);
     camera.aspect = width / height;
     camera.position.z = width < 700 ? 5.4 : 5.1;
     camera.updateProjectionMatrix();
     updateScrollTarget();
   };
-  const setTarget = { x: 0, y: 0, scale: 1 };
-  const sceneMarks = [
-    { element: document.querySelector('#hero'), x: window.innerWidth < 700 ? 0 : 1.0, y: 0, scale: window.innerWidth < 700 ? 0.83 : 1.0 },
-    { element: document.querySelector('#story'), x: window.innerWidth < 700 ? 0 : 1.65, y: 0, scale: window.innerWidth < 700 ? 0.62 : 0.76 },
-    { element: mapSection, x: window.innerWidth < 700 ? 0 : 1.05, y: 0, scale: window.innerWidth < 700 ? 0.98 : 1.12 },
-    { element: document.querySelector('#site-footer'), x: window.innerWidth < 700 ? 0 : 1.6, y: 0, scale: window.innerWidth < 700 ? 0.54 : 0.68 },
-  ].filter((mark) => mark.element);
-  function updateScrollTarget() {
-    const center = window.scrollY + window.innerHeight * 0.48;
-    const points = sceneMarks.map((mark) => ({ ...mark, center: mark.element.offsetTop + mark.element.offsetHeight * 0.5 }));
-    let left = points[0];
-    let right = points.at(-1);
-    for (let index = 1; index < points.length; index += 1) {
-      if (center <= points[index].center) { left = points[index - 1]; right = points[index]; break; }
-    }
-    const span = Math.max(1, right.center - left.center);
-    const progress = THREE.MathUtils.clamp((center - left.center) / span, 0, 1);
-    setTarget.x = THREE.MathUtils.lerp(left.x, right.x, progress);
-    setTarget.y = THREE.MathUtils.lerp(left.y, right.y, progress);
-    setTarget.scale = THREE.MathUtils.lerp(left.scale, right.scale, progress);
-  }
   let scrollScheduled = false;
   const onScroll = () => {
     if (scrollScheduled) return;
     scrollScheduled = true;
     requestAnimationFrame(() => { updateScrollTarget(); scrollScheduled = false; });
   };
+  const onPointerDown = (event) => {
+    if (progress < .76 || progress >= .995) return;
+    pointerDown = { x: event.clientX, y: event.clientY, lastX: event.clientX, lastY: event.clientY };
+    dragged = false;
+    interaction.setPointerCapture(event.pointerId);
+  };
+  const onPointerMove = (event) => {
+    if (!pointerDown || (event.pointerType === 'mouse' && !event.buttons)) {
+      if (event.pointerType === 'mouse' && progress >= .76 && progress < .995) interaction.classList.toggle('is-pointing-at-country', Boolean(pickFeature(event)));
+      return;
+    }
+    const dx = event.clientX - pointerDown.lastX;
+    const dy = event.clientY - pointerDown.lastY;
+    if (Math.abs(event.clientX - pointerDown.x) + Math.abs(event.clientY - pointerDown.y) > 7) dragged = true;
+    if (Math.abs(dx) > Math.abs(dy)) { dragX += dx * .004; dragY = THREE.MathUtils.clamp(dragY + dy * .002, -.7, .7); }
+    pointerDown.lastX = event.clientX;
+    pointerDown.lastY = event.clientY;
+  };
+  const onPointerUp = (event) => {
+    if (pointerDown && !dragged) {
+      const feature = pickFeature(event);
+      if (feature) setCountry(feature);
+    }
+    pointerDown = null;
+  };
+  const onPointerCancel = () => { pointerDown = null; };
+  interaction.addEventListener('pointerdown', onPointerDown);
+  interaction.addEventListener('pointermove', onPointerMove);
+  interaction.addEventListener('pointerup', onPointerUp);
+  interaction.addEventListener('pointercancel', onPointerCancel);
   window.addEventListener('resize', resize, { passive: true });
   window.addEventListener('scroll', onScroll, { passive: true });
   resize();
-
-  const activeObserver = new IntersectionObserver(([entry]) => {
-    mapSection.classList.toggle('is-globe-active', entry.isIntersecting);
-    document.body.classList.toggle('map-active', entry.isIntersecting);
-    if (entry.isIntersecting) popup.hidden = true;
-  }, { threshold: 0.12 });
-  activeObserver.observe(mapSection);
-
   const visibilityObserver = new IntersectionObserver((entries) => { active = entries.some((entry) => entry.isIntersecting); }, { threshold: 0.01 });
-  visibilityObserver.observe(document.querySelector('#hero'));
-  visibilityObserver.observe(document.querySelector('#story'));
-  visibilityObserver.observe(mapSection);
+  visibilityObserver.observe(stage);
   const onVisibilityChange = () => { active = !document.hidden; };
   document.addEventListener('visibilitychange', onVisibilityChange);
 
   renderer.setAnimationLoop((time) => {
     if (!active || time - lastFrame < 32) return;
     lastFrame = time;
-    if (!reducedMotion.matches) globe.rotation.y += 0.00045;
-    globe.position.x += (setTarget.x - globe.position.x) * 0.045;
-    globe.position.y += (setTarget.y - globe.position.y) * 0.045;
-    const targetScale = setTarget.scale;
-    globe.scale.setScalar(globe.scale.x + (targetScale - globe.scale.x) * 0.045);
+    const small = window.innerWidth < 700;
+    const initialWidth = Math.min(window.innerWidth * .86, 860);
+    const logoX = .5 + (1086 * .194 - 1086 * .5) * initialWidth / 1086 / window.innerWidth;
+    const p0 = pose(logoX, .5, Math.min(initialWidth * .22 / window.innerHeight, .24));
+    const p1 = pose(.5, small ? .45 : .48, small ? .42 : .54);
+    const p2 = pose(small ? (document.documentElement.dir === 'rtl' ? .31 : .69) : (document.documentElement.dir === 'rtl' ? .28 : .72), small ? .34 : .49, small ? .34 : .43);
+    const blend = (a, b, t) => ({ x: THREE.MathUtils.lerp(a.x, b.x, t), y: THREE.MathUtils.lerp(a.y, b.y, t), scale: THREE.MathUtils.lerp(a.scale, b.scale, t) });
+    const t1 = THREE.MathUtils.clamp(progress / .25, 0, 1);
+    const t2 = THREE.MathUtils.clamp((progress - .58) / .23, 0, 1);
+    const target = blend(blend(p0, p1, t1), p2, t2);
+    const easing = reducedMotion.matches ? 1 : .08;
+    globe.position.x += (target.x - globe.position.x) * easing;
+    globe.position.y += (target.y - globe.position.y) * easing;
+    globe.scale.setScalar(globe.scale.x + (target.scale - globe.scale.x) * easing);
+    globe.rotation.y += ((progress < .2 ? 0 : progress < .65 ? .35 : -.22) + dragX - globe.rotation.y) * (pointerDown ? 1 : easing);
+    globe.rotation.x += ((-.04 + dragY - globe.rotation.x) * (pointerDown ? 1 : easing));
+    placeInteraction();
     renderer.render(scene, camera);
   });
 
@@ -392,8 +400,12 @@ export async function mountGlobe(copy) {
     window.removeEventListener('resize', resize);
     window.removeEventListener('scroll', onScroll);
     document.removeEventListener('visibilitychange', onVisibilityChange);
-    activeObserver.disconnect();
     visibilityObserver.disconnect();
+    interaction.removeEventListener('pointerdown', onPointerDown);
+    interaction.removeEventListener('pointermove', onPointerMove);
+    interaction.removeEventListener('pointerup', onPointerUp);
+    interaction.removeEventListener('pointercancel', onPointerCancel);
+    document.body.classList.remove('map-active');
   };
 }
 
