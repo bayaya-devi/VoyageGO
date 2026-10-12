@@ -1,4 +1,7 @@
 node_modules/
+.env.local
+.env.*.local
+auth/runtime-config.generated.js
 playwright-report/
 test-results/
 *.zip

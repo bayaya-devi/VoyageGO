@@ -26,7 +26,7 @@ export default {
     { title: 'Explore', text: 'Meet new places, people and cultures.' },
   ],
   stepLabel: 'Three moments of a journey',
-  login: 'Sign in', loginUnavailable: 'A VoyageGo account is not available yet.',
+  login: 'Sign in', accountLabel: 'My account', accountTitle: 'Your VoyageGo space', accountDescription: 'Sign in to access your VoyageGo account.', loginUnavailable: 'A VoyageGo account is not available yet.',
   language: 'Language', chooseLanguage: 'Choose a language', menu: 'Main navigation', top: 'Back to top',
   skip: 'Skip to main content', notFound: 'This page could not be found.',
   footerLabel: 'Information and useful links', footerLead: '',
@@ -52,10 +52,10 @@ export default {
     },
     privacy: {
       title: 'Personal data',
-      intro: 'VoyageGo is a discovery portal. This version does not offer accounts, bookings, analytics or data-collection forms.',
+      intro: 'VoyageGo is a discovery portal. The account module remains disabled until its identity provider is configured. Before activation, the operator must complete this notice with account data, the provider, retention periods, and processing purposes.',
       sections: [
         ['Data controller', 'Controller identity and contact details: [To be completed by the operating entity]. Contact for data requests: [To be completed].'],
-        ['Language preference', 'If you choose a language, the site remembers it in your browser’s local storage under the key “voyagego-language”. This data stays on your device and is used only to reopen the portal in your chosen language. Clear it with the button on this page or in your browser settings.'],
+        ['Language preference and account', 'Your language choice is stored in local storage under “voyagego-language”. When accounts are enabled, the authentication client will also use local storage to persist the session. This storage is strictly necessary for sign-in and is not used for advertising or audience measurement. Before activation, the operator must specify purposes, legal basis, retention, recipients, transfers, and applicable rights.'],
         ['Hosting and technical logs', 'GitHub Pages hosts the site. The provider may process technical connection data, such as IP addresses, under its own terms and privacy policy. Before publication, the operator must confirm applicable retention periods, recipients, transfers and procedures.'],
         ['Your rights and retention', 'Requests to access, correct or erase personal data, or exercise other applicable rights, can be sent to [contact to be completed]. The operator must specify retention rules and the relevant supervisory authority for the jurisdictions concerned.'],
       ],
@@ -73,7 +73,7 @@ export default {
       title: 'Terms of use',
       intro: 'VoyageGo introduces independent national portals. This version links to MarocoGO; FrancoGO is marked as coming soon.',
       sections: [
-        ['Service availability', 'Central accounts, bookings and trip-planning features are not enabled on this portal. The sign-in button explains that the service is unavailable and does not create a session.'],
+        ['Service availability', 'VoyageGo account access works only when the identity provider is configured. While the service is shown as unavailable, no registration, sign-in, or session is created. This portal does not offer bookings or trip planning.'],
         ['Links to national platforms', 'MarocoGO is a separate website governed by its own information and terms. A link to another website takes you away from VoyageGo. Platforms marked as coming soon are not represented as operational.'],
         ['Publisher and governing law', 'Operator identity, governing law, jurisdiction, liability and complaint procedures: [To be completed and checked by the operating entity before publication].'],
       ],

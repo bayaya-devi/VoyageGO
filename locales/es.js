@@ -24,7 +24,7 @@ export default {
     { title: 'Explorar', text: 'Conoce nuevos lugares y culturas.' },
   ],
   stepLabel: 'Tres momentos del viaje',
-  login: 'Iniciar sesión', loginUnavailable: 'La cuenta de VoyageGo todavía no está disponible.',
+  login: 'Iniciar sesión', accountLabel: 'Mi cuenta', accountTitle: 'Tu espacio VoyageGo', accountDescription: 'Inicia sesión para acceder a tu cuenta VoyageGo.', loginUnavailable: 'La cuenta de VoyageGo todavía no está disponible.',
   language: 'Idioma', chooseLanguage: 'Elige un idioma', menu: 'Navegación principal', top: 'Volver arriba',
   skip: 'Ir al contenido principal', notFound: 'No se encontró esta página.',
   footerLabel: 'Información y enlaces útiles', footerLead: '',
@@ -50,10 +50,10 @@ export default {
     },
     privacy: {
       title: 'Datos personales',
-      intro: 'VoyageGo es un portal de descubrimiento. Esta versión no ofrece cuentas, reservas, análisis de audiencia ni formularios de recogida de datos.',
+      intro: 'VoyageGo es un portal de descubrimiento. El módulo de cuenta permanece desactivado hasta configurar su proveedor de identidad. Antes de activarlo, la entidad responsable debe completar este aviso con los datos de cuenta, el proveedor, los plazos de conservación y los fines del tratamiento.',
       sections: [
         ['Responsable del tratamiento', 'Identidad y datos de contacto del responsable: [Pendiente de completar por la entidad operadora]. Contacto para solicitudes sobre datos: [Pendiente].'],
-        ['Preferencia de idioma', 'Si eliges un idioma, el sitio lo guarda en el almacenamiento local de tu navegador con la clave «voyagego-language». El dato permanece en tu dispositivo y solo se utiliza para volver a abrir el portal en el idioma elegido. Puedes borrarlo desde esta página o desde los ajustes del navegador.'],
+        ['Preferencia de idioma y cuenta', 'La elección de idioma se guarda en el almacenamiento local con «voyagego-language». Cuando se activen las cuentas, el cliente de autenticación también usará el almacenamiento local para mantener la sesión. Es un almacenamiento estrictamente necesario para iniciar sesión; no se usa para publicidad ni medición de audiencia. Antes de activarlo, la entidad responsable debe especificar fines, base jurídica, conservación, destinatarios, transferencias y derechos aplicables.'],
         ['Alojamiento y registros técnicos', 'GitHub Pages aloja el sitio. El proveedor puede tratar datos técnicos de conexión, como la dirección IP, conforme a sus propias condiciones y política de privacidad. La entidad editora debe confirmar los plazos, destinatarios, transferencias y procedimientos aplicables.'],
         ['Derechos y conservación', 'Las solicitudes de acceso, rectificación, supresión u otros derechos aplicables pueden dirigirse a [contacto pendiente]. La entidad operadora debe especificar las reglas de conservación y la autoridad de control competente para las jurisdicciones pertinentes.'],
       ],
@@ -71,7 +71,7 @@ export default {
       title: 'Condiciones de uso',
       intro: 'VoyageGo presenta portales nacionales independientes. Esta versión enlaza con MarocoGO; FrancoGO figura como próximamente disponible.',
       sections: [
-        ['Disponibilidad del servicio', 'Este portal no ofrece cuentas centrales, reservas ni funciones de planificación de viajes. El botón de inicio de sesión informa de que la función no está disponible y no crea ninguna sesión.'],
+        ['Disponibilidad del servicio', 'El acceso a la cuenta VoyageGo solo funciona cuando se configura el proveedor de identidad. Mientras el servicio aparezca como no disponible, no se crean registros, inicios de sesión ni sesiones. Este portal no ofrece reservas ni planificación de viajes.'],
         ['Enlaces a plataformas nacionales', 'MarocoGO es un sitio independiente, sujeto a su propia información y condiciones. Al abrir otro sitio, sales de VoyageGo. Las plataformas marcadas como próximamente disponibles no se presentan como operativas.'],
         ['Entidad editora y ley aplicable', 'Identidad de la entidad operadora, ley aplicable, jurisdicción, responsabilidades y reclamaciones: [Pendiente de completar y revisar por la entidad operadora antes del lanzamiento].'],
       ],

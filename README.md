@@ -23,6 +23,7 @@ Site statique servi à `https://bayaya-devi.github.io/VoyageGO/`. Le dépôt Git
 - Le Maroc redirige vers MarocoGO. La France et les autres destinations futures affichent un statut exact et une action désactivée.
 - La langue manuelle reste dans le `localStorage` du domaine VoyageGo; elle n’est pas partagée automatiquement entre les domaines nationaux.
 - Aucun traceur ou compte central n’est activé. Les pages juridiques restent des brouillons à compléter par l’entité exploitante et ne constituent pas un avis juridique.
+- Le module de comptes central est préparé sur Supabase Auth/Postgres avec flux PKCE, profil protégé par RLS, connexion Google et parcours e-mail; il reste désactivé tant que le fournisseur, SMTP, OAuth, la migration SQL et les obligations légales ne sont pas configurés. Voir [`docs/AUTH-SETUP.md`](docs/AUTH-SETUP.md).
 - Les performances de terrain/Core Web Vitals et l’expérience sur appareils physiques doivent encore être mesurées; elles ne sont pas déclarées atteintes par les tests locaux.
 
 ## Vérification locale

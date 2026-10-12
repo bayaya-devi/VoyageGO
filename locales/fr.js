@@ -26,7 +26,7 @@ export default {
     { title: 'Explorer', text: 'Partez à la rencontre de nouvelles cultures.' },
   ],
   stepLabel: 'Les trois temps du voyage',
-  login: 'Connexion', loginUnavailable: 'Le compte VoyageGo n’est pas encore disponible.',
+  login: 'Connexion', accountLabel: 'Mon compte', accountTitle: 'Votre espace VoyageGo', accountDescription: 'Connectez-vous pour accéder à votre espace VoyageGo.', loginUnavailable: 'Le compte VoyageGo n’est pas encore disponible.',
   language: 'Langue', chooseLanguage: 'Choisir une langue', menu: 'Navigation principale', top: 'Retour en haut',
   skip: 'Aller au contenu principal', notFound: 'Cette page est introuvable.',
   footerLabel: 'Informations et liens utiles', footerLead: '',
@@ -52,10 +52,10 @@ export default {
     },
     privacy: {
       title: 'Données personnelles',
-      intro: 'VoyageGo est un portail de découverte. Cette version ne propose pas de compte, de réservation, de mesure d’audience ni de formulaire de collecte.',
+      intro: 'VoyageGo est un portail de découverte. Le module de compte reste désactivé tant que son fournisseur d’identité n’est pas configuré. Avant activation, l’exploitant doit compléter cet avis avec les données de compte, le fournisseur, les durées de conservation et les finalités du traitement.',
       sections: [
         ['Responsable du traitement', 'Identité et coordonnées du responsable : [À compléter par l’entité exploitante]. Contact pour les demandes relatives aux données : [À compléter].'],
-        ['Préférence de langue', 'Si vous choisissez une langue, le site mémorise ce choix dans le stockage local de votre navigateur sous la clé « voyagego-language ». Cette donnée reste sur votre appareil et sert uniquement à rouvrir le portail dans la langue choisie. Elle peut être effacée avec le bouton de cette page ou dans les réglages du navigateur.'],
+        ['Préférence de langue et compte', 'Le choix de langue est mémorisé dans le stockage local sous « voyagego-language ». Lorsque le compte sera activé, le client d’authentification utilisera aussi ce stockage pour maintenir la session. Ce stockage est strictement nécessaire à la connexion et ne sert pas à la publicité ou à la mesure d’audience. L’exploitant doit compléter les finalités, la base légale, les durées, les destinataires, les transferts et les droits avant activation.'],
         ['Hébergement et journaux techniques', 'GitHub Pages héberge le site. Le fournisseur peut traiter des données techniques de connexion, telles que l’adresse IP, selon ses propres conditions et sa politique de confidentialité. L’éditeur doit confirmer les durées, destinataires, transferts et modalités applicables avant publication.'],
         ['Vos droits et durée de conservation', 'Les demandes d’accès, de rectification, d’effacement ou autres droits applicables sont à adresser à [contact à compléter]. Les règles de conservation et l’autorité de contrôle compétente doivent être précisées par l’entité exploitante selon les juridictions concernées.'],
       ],
@@ -73,7 +73,7 @@ export default {
       title: 'Conditions d’utilisation',
       intro: 'VoyageGo présente des portails nationaux indépendants. Cette version permet d’ouvrir MarocoGO; FrancoGO est indiqué comme prochainement disponible.',
       sections: [
-        ['État du service', 'Les fonctionnalités de compte central, de réservation et de préparation de voyage ne sont pas activées sur ce portail. Le bouton de connexion informe de cette indisponibilité et ne crée aucune session.'],
+        ['État du service', 'L’accès au compte VoyageGo fonctionne uniquement si le fournisseur d’identité est configuré. Tant que le service est indiqué comme indisponible, aucune inscription, connexion ou session n’est créée. Les réservations et la préparation de voyage ne sont pas proposées par ce portail.'],
         ['Liens vers des plateformes nationales', 'MarocoGO est un site distinct, régi par ses propres informations et conditions. Un lien vers un autre site vous fait quitter VoyageGo. Les plateformes affichées comme prochainement disponibles ne sont pas présentées comme opérationnelles.'],
         ['Éditeur et droit applicable', 'Identité de l’exploitant, droit applicable, juridiction compétente, responsabilités et modalités de réclamation : [À compléter et faire vérifier par l’entité exploitante avant publication].'],
       ],

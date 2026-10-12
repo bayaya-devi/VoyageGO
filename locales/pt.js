@@ -24,7 +24,7 @@ export default {
     { title: 'Explorar', text: 'Conheça novos lugares e culturas.' },
   ],
   stepLabel: 'Três momentos da viagem',
-  login: 'Iniciar sessão', loginUnavailable: 'A conta VoyageGo ainda não está disponível.',
+  login: 'Iniciar sessão', accountLabel: 'A minha conta', accountTitle: 'O teu espaço VoyageGo', accountDescription: 'Inicia sessão para aceder à tua conta VoyageGo.', loginUnavailable: 'A conta VoyageGo ainda não está disponível.',
   language: 'Idioma', chooseLanguage: 'Escolha um idioma', menu: 'Navegação principal', top: 'Voltar ao topo',
   skip: 'Saltar para o conteúdo principal', notFound: 'Esta página não foi encontrada.',
   footerLabel: 'Informações e ligações úteis', footerLead: '',
@@ -50,10 +50,10 @@ export default {
     },
     privacy: {
       title: 'Dados pessoais',
-      intro: 'A VoyageGo é um portal de descoberta. Esta versão não disponibiliza contas, reservas, análise de audiência nem formulários de recolha de dados.',
+      intro: 'A VoyageGo é um portal de descoberta. O módulo de conta permanece desativado até o fornecedor de identidade estar configurado. Antes da ativação, a entidade responsável deve completar este aviso com os dados da conta, o fornecedor, os prazos de conservação e as finalidades do tratamento.',
       sections: [
         ['Responsável pelo tratamento', 'Identidade e contactos do responsável: [A preencher pela entidade operadora]. Contacto para pedidos relativos a dados: [Por preencher].'],
-        ['Preferência de idioma', 'Se escolher um idioma, o site guarda essa escolha no armazenamento local do navegador com a chave «voyagego-language». O dado permanece no seu dispositivo e é utilizado apenas para voltar a abrir o portal no idioma escolhido. Pode apagá-lo nesta página ou nas definições do navegador.'],
+        ['Preferência de idioma e conta', 'A escolha do idioma é guardada no armazenamento local com «voyagego-language». Quando as contas forem ativadas, o cliente de autenticação também utilizará o armazenamento local para manter a sessão. Este armazenamento é estritamente necessário para iniciar sessão; não é usado para publicidade nem medição de audiência. Antes da ativação, a entidade responsável deve especificar as finalidades, a base legal, a conservação, os destinatários, as transferências e os direitos aplicáveis.'],
         ['Alojamento e registos técnicos', 'O GitHub Pages aloja o site. O fornecedor pode tratar dados técnicos de ligação, como o endereço IP, segundo os seus próprios termos e política de privacidade. A entidade editora deve confirmar os prazos, destinatários, transferências e procedimentos aplicáveis.'],
         ['Direitos e conservação', 'Os pedidos de acesso, retificação, apagamento ou outros direitos aplicáveis podem ser enviados para [contacto por preencher]. A entidade operadora deve especificar os prazos de conservação e a autoridade de controlo competente nas jurisdições relevantes.'],
       ],
@@ -71,7 +71,7 @@ export default {
       title: 'Termos de utilização',
       intro: 'A VoyageGo apresenta portais nacionais independentes. Esta versão permite aceder à MarocoGO; a FrancoGO é indicada como brevemente disponível.',
       sections: [
-        ['Disponibilidade do serviço', 'Este portal não disponibiliza contas centrais, reservas nem funcionalidades de planeamento de viagens. O botão de início de sessão informa que a função não está disponível e não cria qualquer sessão.'],
+        ['Disponibilidade do serviço', 'O acesso à conta VoyageGo só funciona quando o fornecedor de identidade estiver configurado. Enquanto o serviço for apresentado como indisponível, não é criado qualquer registo, início de sessão ou sessão. Este portal não disponibiliza reservas nem planeamento de viagens.'],
         ['Ligações a plataformas nacionais', 'A MarocoGO é um site independente, sujeito às suas próprias informações e condições. Ao abrir outro site, sai da VoyageGo. As plataformas assinaladas como brevemente disponíveis não são apresentadas como operacionais.'],
         ['Entidade editora e lei aplicável', 'Identidade da entidade operadora, lei aplicável, jurisdição, responsabilidades e reclamações: [Por preencher e validar pela entidade operadora antes do lançamento].'],
       ],

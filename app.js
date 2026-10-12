@@ -10,9 +10,11 @@ const iconPaths = {
   route: '<circle cx="6" cy="18" r="2"/><circle cx="18" cy="6" r="2"/><path d="M8 18h2a3 3 0 0 0 3-3V9a3 3 0 0 1 3-3h0"/>',
   landscape: '<path d="m3 19 6-8 4 5 3-4 5 7H3Z"/><path d="M13 8h.01M3 21h18"/>',
   arrow: '<path d="M5 12h14m-6-6 6 6-6 6"/>',
+  user: '<circle cx="12" cy="8" r="3.5"/><path d="M5 20a7 7 0 0 1 14 0"/>',
 };
 
 let cleanupGlobe = () => {};
+let cleanupAccount = () => {};
 
 function icon(name, className = '') {
   return `<svg class="${className}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${iconPaths[name]}</svg>`;
@@ -42,13 +44,23 @@ function preferredLocale() {
 function getDevice() { return matchMedia('(max-width: 800px)').matches ? 'telephone' : 'ordinateur'; }
 function currentPage() {
   const params = new URLSearchParams(location.search);
-  return params.get('page') === 'legal' ? params.get('doc') : null;
+  if (params.get('page') === 'legal') return { type: 'legal', docId: params.get('doc') };
+  if (params.get('page') === 'account') return { type: 'account', view: params.get('view') || 'login', returnTo: params.get('returnTo') };
+  return null;
 }
 
 function homeUrl(locale) { return new URL(`${locale}/`, new URL('./', document.baseURI)).href; }
 function legalUrl(locale, docId) {
   const url = new URL(homeUrl(locale));
   url.search = new URLSearchParams({ page: 'legal', doc: docId });
+  return url.href;
+}
+
+function accountUrl(locale, view, returnTo = null) {
+  const url = new URL(homeUrl(locale));
+  url.searchParams.set('page', 'account');
+  url.searchParams.set('view', view);
+  if (returnTo?.startsWith('/') && !returnTo.startsWith('//')) url.searchParams.set('returnTo', returnTo);
   return url.href;
 }
 
@@ -65,7 +77,7 @@ function header(copy) {
   return `<a class="skip-link" href="#main-content">${escapeHtml(copy.skip)}</a>
     <header class="secondary-header">
       <a class="brand" href="${escapeHtml(homeUrl(copy.lang))}" aria-label="VoyageGo — ${escapeHtml(copy.home)}"><img src="${new URL('voyagego-logo-2x.png', document.baseURI).href}" width="1086" height="362" alt="VoyageGo"></a>
-      ${languageControl(copy)}
+      <div class="header-actions"><a class="profile-trigger header-profile" data-profile-link href="${escapeHtml(accountUrl(copy.lang, 'login'))}" aria-label="${escapeHtml(copy.login)}" title="${escapeHtml(copy.login)}">${icon('user')}<span>${escapeHtml(copy.login)}</span></a>${languageControl(copy)}</div>
     </header>`;
 }
 
@@ -116,7 +128,7 @@ function homeContent(copy) {
         <nav class="footer-nav" aria-label="${escapeHtml(copy.footerLabel)}"><h2>${escapeHtml(copy.legalHeading)}</h2><ul>${copy.legal.map((link) => `<li><a href="${escapeHtml(legalUrl(copy.lang, link.id))}" data-legal="${link.id}">${escapeHtml(link.label)}</a></li>`).join('')}</ul></nav>
       </div><div class="footer-meta"><span>© ${new Date().getFullYear()} VoyageGo</span></div>
     </footer>
-    <div class="floating-controls">${languageControl(copy)}<div class="back-top" id="back-top"><button type="button" aria-label="${escapeHtml(copy.top)}" title="${escapeHtml(copy.top)}">${icon('up')}</button></div></div>
+    <div class="floating-controls"><a class="profile-trigger floating-profile" data-profile-link href="${escapeHtml(accountUrl(copy.lang, 'login'))}" aria-label="${escapeHtml(copy.login)}" title="${escapeHtml(copy.login)}">${icon('user')}</a>${languageControl(copy)}<div class="back-top" id="back-top"><button type="button" aria-label="${escapeHtml(copy.top)}" title="${escapeHtml(copy.top)}">${icon('up')}</button></div></div>
     <div class="notice" id="notice" role="status" aria-live="polite" hidden><span id="notice-text"></span><button id="notice-close" type="button">${escapeHtml(copy.close)}</button></div>
   </main>`;
 }
@@ -132,19 +144,20 @@ function legalContent(copy, docId) {
     <div class="floating-controls"><div class="back-top" id="back-top"><button type="button" aria-label="${escapeHtml(copy.top)}">${icon('up')}</button></div></div>`;
 }
 
-function setMetadata(copy, docId) {
-  const page = docId ? copy.legalPages[docId] : null;
+function setMetadata(copy, route) {
+  const page = route?.type === 'legal' ? copy.legalPages[route.docId] : null;
+  const account = route?.type === 'account';
   document.documentElement.lang = copy.lang;
   document.documentElement.dir = copy.direction;
-  document.title = page ? `${page.title} — VoyageGo` : `VoyageGo — ${copy.title}`;
-  const description = page?.intro || copy.description;
+  document.title = page ? `${page.title} — VoyageGo` : account ? `${copy.accountTitle} — VoyageGo` : `VoyageGo — ${copy.title}`;
+  const description = page?.intro || (account ? copy.accountDescription : copy.description);
   const meta = document.querySelector('meta[name="description"]');
   if (meta) meta.content = description;
   let robots = document.querySelector('meta[name="robots"]');
   if (!robots) { robots = document.createElement('meta'); robots.name = 'robots'; document.head.append(robots); }
-  robots.content = page ? 'noindex,follow' : 'index,follow';
+  robots.content = page || account ? 'noindex,follow' : 'index,follow';
   const canonical = document.querySelector('link[rel="canonical"]') || document.head.appendChild(Object.assign(document.createElement('link'), { rel: 'canonical' }));
-  canonical.href = page ? legalUrl(copy.lang, docId) : homeUrl(copy.lang);
+  canonical.href = page ? legalUrl(copy.lang, route.docId) : homeUrl(copy.lang);
   const updateMeta = (selector, content) => {
     let tag = document.querySelector(selector);
     if (!tag) {
@@ -178,7 +191,9 @@ function bind(copy, page) {
   document.querySelectorAll('[data-language]').forEach((button) => button.addEventListener('click', () => {
     const locale = button.dataset.language;
     try { localStorage.setItem(preferenceKey, locale); } catch { /* The language still changes for this visit. */ }
-    location.assign(page ? legalUrl(locale, page) : homeUrl(locale));
+    if (page?.type === 'legal') location.assign(legalUrl(locale, page.docId));
+    else if (page?.type === 'account') location.assign(accountUrl(locale, page.view, page.returnTo));
+    else location.assign(homeUrl(locale));
   }));
   document.querySelector('#country-picker')?.addEventListener('change', (event) => {
     if (event.currentTarget.dataset.worldLoaded === 'true') return;
@@ -237,6 +252,8 @@ function bind(copy, page) {
 async function render() {
   cleanupGlobe();
   cleanupGlobe = () => {};
+  cleanupAccount();
+  cleanupAccount = () => {};
   const locale = localeFromPath();
   if (!locale) { location.replace(new URL(homeUrl(preferredLocale()), document.baseURI)); return; }
   const { default: copy } = await import(`./${getDevice()}-${locale}.js`);
@@ -244,9 +261,19 @@ async function render() {
   document.documentElement.dataset.device = getDevice();
   const page = currentPage();
   setMetadata(copy, page);
-  app.innerHTML = page ? `${header(copy)}${legalContent(copy, page)}` : homeContent(copy);
+  if (page?.type === 'account') {
+    app.innerHTML = header(copy);
+    bind(copy, page);
+    const { renderAccount, updateProfileBadge } = await import('./auth/account-ui.js');
+    cleanupAccount = await renderAccount(app, copy, page.view, page.returnTo);
+    await updateProfileBadge(copy);
+    document.querySelector('#main-content')?.focus({ preventScroll: true });
+    return;
+  }
+  app.innerHTML = page?.type === 'legal' ? `${header(copy)}${legalContent(copy, page.docId)}` : homeContent(copy);
   bind(copy, page);
   if (!page) {
+    import('./auth/account-ui.js').then(({ updateProfileBadge }) => updateProfileBadge(copy)).catch(() => {});
     import('./globe.js').then(({ mountGlobe }) => mountGlobe(copy)).then((cleanup) => { cleanupGlobe = cleanup; }).catch(() => {
       const status = document.querySelector('#globe-status');
       if (status) status.textContent = copy.mapUnavailable;

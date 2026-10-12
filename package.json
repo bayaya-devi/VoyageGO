@@ -4,6 +4,8 @@
   "version": "1.0.0",
   "type": "module",
   "scripts": {
+    "build:auth": "esbuild auth/supabase-entry.js --bundle --format=esm --minify --target=es2020 --outfile=vendor/supabase-auth.js",
+    "configure:auth": "node auth/configure.js",
     "test:e2e": "playwright test",
     "test:a11y": "playwright test --grep @a11y"
   },
@@ -11,6 +13,10 @@
     "@axe-core/playwright": "4.13.0",
     "@playwright/test": "1.64.0",
     "axe-core": "4.13.0",
+    "esbuild": "0.28.2",
     "three": "0.186.1"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "2.117.3"
   }
 }

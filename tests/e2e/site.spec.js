@@ -119,3 +119,74 @@ test('@a11y all five localized pages pass axe WCAG 2.2 AA checks', async ({ page
     expect(results.violations.map(({ id, impact, help }) => ({ id, impact, help }))).toEqual([]);
   }
 });
+
+test('account signup is localized, keyboard-labelled, and honestly unavailable before backend setup', async ({ browser }) => {
+  for (const locale of locales) {
+    for (const viewport of [{ width: 1440, height: 900 }, { width: 375, height: 812 }]) {
+      const context = await browser.newContext({ viewport });
+      const page = await context.newPage();
+      const errors = [];
+      page.on('pageerror', (error) => errors.push(error.message));
+      await page.goto(`${locale.code}/?page=account&view=signup`);
+      await expect(page.locator('html')).toHaveAttribute('lang', locale.code);
+      await expect(page.locator('html')).toHaveAttribute('dir', locale.direction);
+      await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
+      await expect(page.locator('#email')).toBeVisible();
+      await expect(page.locator('#password')).toBeVisible();
+      await expect(page.locator('#account-form [type="submit"]')).toBeDisabled();
+      await expect(page.locator('.account-unavailable')).toBeVisible();
+      await expect(page.locator('.account-footer .footer-nav a')).toHaveCount(5);
+      const dimensions = await page.evaluate(() => ({ body: document.body.scrollWidth, viewport: document.documentElement.clientWidth }));
+      expect(dimensions.body).toBeLessThanOrEqual(dimensions.viewport);
+      expect(errors).toEqual([]);
+      await context.close();
+    }
+  }
+});
+
+test('@a11y account signup passes axe WCAG 2.2 AA in all supported languages', async ({ page }) => {
+  for (const locale of locales) {
+    await page.goto(`${locale.code}/?page=account&view=signup`);
+    const results = await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa', 'wcag21aa', 'wcag22aa']).analyze();
+    expect(results.violations.map(({ id, impact, help }) => ({ id, impact, help }))).toEqual([]);
+  }
+});
+
+test('signup rejects weak credentials locally and sends normalized data to the configured auth endpoint', async ({ page }) => {
+  await page.route('**/auth/runtime-config.js', (route) => route.fulfill({
+    status: 200,
+    contentType: 'text/javascript',
+    body: "export const authConfig = Object.freeze({supabaseUrl:'https://voyagego-test.supabase.co',supabasePublishableKey:'sb_publishable_test'});",
+  }));
+  let signupRequest;
+  await page.route('https://voyagego-test.supabase.co/auth/v1/**', async (route) => {
+    const url = new URL(route.request().url());
+    if (url.pathname.endsWith('/settings')) {
+      await route.fulfill({ json: { external: { email: true, google: true }, disable_signup: false, mailer_autoconfirm: false } });
+      return;
+    }
+    if (url.pathname.endsWith('/signup')) {
+      signupRequest = route.request().postDataJSON();
+      await route.fulfill({ json: { user: { id: '00000000-0000-4000-8000-000000000001', aud: 'authenticated', role: 'authenticated', email: signupRequest.email, app_metadata: { provider: 'email', providers: ['email'] }, user_metadata: signupRequest.data, identities: [], created_at: new Date().toISOString() }, session: null } });
+      return;
+    }
+    await route.fulfill({ status: 400, json: { message: 'Unexpected test request' } });
+  });
+  await page.goto('fr/?page=account&view=signup');
+  await page.locator('#first-name').fill('Ada');
+  await page.locator('#last-name').fill('Voyage');
+  await page.locator('#email').fill(' NOT-AN-EMAIL ');
+  await page.locator('#password').fill('weak');
+  await page.locator('#confirm-password').fill('weak');
+  await page.locator('#account-form [type="submit"]').click();
+  await expect(page.locator('#account-message')).toContainText('adresse e-mail valide');
+  expect(signupRequest).toBeUndefined();
+
+  await page.locator('#email').fill(' Ada@Example.com ');
+  await page.locator('#password').fill('Voyage7');
+  await page.locator('#confirm-password').fill('Voyage7');
+  await page.locator('#account-form [type="submit"]').click();
+  await expect(page.locator('#account-message')).toContainText('Si votre inscription peut être finalisée');
+  expect(signupRequest.email).toBe('ada@example.com');
+  expect(signupRequest.data).toMatchObject({ first_name: 'Ada', last_name: 'Voyage', preferred_locale: 'fr' });
+});
