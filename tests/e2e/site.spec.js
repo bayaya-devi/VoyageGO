@@ -1,48 +1,58 @@
 import { test, expect } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
 
-const cases = [
-  { locale: 'fr', device: 'desktop', viewport: { width: 1440, height: 960 }, title: 'Votre prochaine découverte commence ici.', direction: 'ltr' },
-  { locale: 'en', device: 'desktop', viewport: { width: 1440, height: 960 }, title: 'Your next discovery starts here.', direction: 'ltr' },
-  { locale: 'ar', device: 'desktop', viewport: { width: 1440, height: 960 }, title: 'اكتشافك القادم يبدأ من هنا.', direction: 'rtl' },
-  { locale: 'fr', device: 'mobile', viewport: { width: 375, height: 812 }, title: 'Votre prochaine découverte commence ici.', direction: 'ltr' },
-  { locale: 'en', device: 'mobile', viewport: { width: 375, height: 812 }, title: 'Your next discovery starts here.', direction: 'ltr' },
-  { locale: 'ar', device: 'mobile', viewport: { width: 375, height: 812 }, title: 'اكتشافك القادم يبدأ من هنا.', direction: 'rtl' },
+const locales = [
+  { code: 'fr', title: 'Votre prochaine découverte commence ici.', direction: 'ltr', cookieTitle: 'Cookies et préférences', soon: 'Bientôt disponible' },
+  { code: 'en', title: 'Your next discovery starts here.', direction: 'ltr', cookieTitle: 'Cookies and preferences', soon: 'Coming soon' },
+  { code: 'ar', title: 'اكتشافك القادم يبدأ من هنا.', direction: 'rtl', cookieTitle: 'ملفات الارتباط والتفضيلات', soon: 'قريبًا' },
+  { code: 'es', title: 'Tu próximo descubrimiento empieza aquí.', direction: 'ltr', cookieTitle: 'Cookies y preferencias', soon: 'Próximamente' },
+  { code: 'pt', title: 'A sua próxima descoberta começa aqui.', direction: 'ltr', cookieTitle: 'Cookies e preferências', soon: 'Em breve' },
 ];
 
-for (const scenario of cases) {
-  test(`${scenario.device} ${scenario.locale}: portal, destinations and legal route`, async ({ browser }) => {
-    const context = await browser.newContext({ viewport: scenario.viewport });
-    const page = await context.newPage();
-    const pageErrors = [];
-    page.on('pageerror', (error) => pageErrors.push(error.message));
-    await page.goto(`${scenario.locale}/`);
-    await expect(page.locator('html')).toHaveAttribute('lang', scenario.locale);
-    await expect(page.locator('html')).toHaveAttribute('dir', scenario.direction);
-    await expect(page.getByRole('heading', { level: 1, name: scenario.title })).toBeVisible();
-    await expect(page.locator('#map-stage svg')).toBeVisible();
-    await expect(page.locator('#map-stage [data-destination="ma"]')).toHaveAttribute('data-available', 'true');
-    await expect(page.locator('#map-stage [data-destination="fr"]')).toHaveAttribute('aria-label', /.+/);
-    await expect(page.locator('.destination-link.is-available')).toHaveAttribute('href', 'https://bayaya-devi.github.io/MarocoGO/');
-    await page.locator('#map-stage [data-destination="fr"]').click();
-    await expect(page.locator('#notice')).toBeVisible();
-    await page.getByRole('button', { name: scenario.locale === 'ar' ? 'إغلاق' : scenario.locale === 'fr' ? 'Fermer' : 'Close' }).click();
-    await page.getByRole('button', { name: scenario.locale === 'ar' ? 'تسجيل الدخول' : scenario.locale === 'fr' ? 'Connexion' : 'Sign in' }).click();
-    await expect(page.locator('#notice')).toBeVisible();
+const viewports = [
+  { name: 'desktop', viewport: { width: 1440, height: 960 } },
+  { name: 'mobile', viewport: { width: 375, height: 812 } },
+];
 
-    const dimensions = await page.evaluate(() => ({ body: document.body.scrollWidth, viewport: document.documentElement.clientWidth }));
-    expect(dimensions.body).toBeLessThanOrEqual(dimensions.viewport);
+for (const locale of locales) {
+  for (const device of viewports) {
+    test(`${device.name} ${locale.code}: immersive globe, worldwide selection and legal route`, async ({ browser }) => {
+      const context = await browser.newContext({ viewport: device.viewport });
+      const page = await context.newPage();
+      const pageErrors = [];
+      page.on('pageerror', (error) => pageErrors.push(error.message));
+      await page.goto(`${locale.code}/`);
+      await expect(page.locator('html')).toHaveAttribute('lang', locale.code);
+      await expect(page.locator('html')).toHaveAttribute('dir', locale.direction);
+      await expect(page.getByRole('heading', { level: 1, name: locale.title })).toBeVisible();
+      await expect(page.locator('header')).toHaveCount(0);
+      await expect(page.locator('.scene-brand img')).toBeVisible();
+      await expect(page.locator('#country-picker')).toBeVisible();
+      await expect.poll(() => page.locator('#country-picker option').count()).toBeGreaterThan(150);
 
-    await page.locator('[data-legal="cookies"]').click();
-    await expect(page.getByRole('heading', { level: 1 })).toHaveText(scenario.locale === 'ar' ? 'ملفات الارتباط والتفضيلات' : scenario.locale === 'fr' ? 'Cookies et préférences' : 'Cookies and preferences');
-    await expect(page.locator('meta[name="robots"]')).toHaveAttribute('content', 'noindex,follow');
-    await expect(page.locator('#reset-language')).toBeVisible();
-    expect(pageErrors).toEqual([]);
-    await context.close();
-  });
+      await page.locator('#country-picker').selectOption('FRA');
+      await expect(page.locator('#country-popup')).toBeVisible();
+      await expect(page.locator('#country-popup')).toContainText(locale.soon);
+      await expect(page.locator('#country-popup .country-action')).toBeDisabled();
+
+      await page.locator('#country-picker').selectOption('MAR');
+      await expect(page.locator('#country-popup .country-action')).toHaveAttribute('href', 'https://bayaya-devi.github.io/MarocoGO/');
+      await expect(page.locator('#country-popup')).toContainText(locale.code === 'ar' ? 'المغرب' : locale.code === 'fr' ? 'Maroc' : locale.code === 'es' ? 'Marruecos' : locale.code === 'pt' ? 'Marrocos' : 'Morocco');
+
+      const dimensions = await page.evaluate(() => ({ body: document.body.scrollWidth, viewport: document.documentElement.clientWidth }));
+      expect(dimensions.body).toBeLessThanOrEqual(dimensions.viewport);
+
+      await page.locator('[data-legal="cookies"]').click();
+      await expect(page.getByRole('heading', { level: 1 })).toHaveText(locale.cookieTitle);
+      await expect(page.locator('meta[name="robots"]')).toHaveAttribute('content', 'noindex,follow');
+      await expect(page.locator('#reset-language')).toBeVisible();
+      expect(pageErrors).toEqual([]);
+      await context.close();
+    });
+  }
 }
 
-test('manual language preference overrides browser language and survives the selector', async ({ browser }) => {
+test('manual language preference overrides browser locale and survives routing', async ({ browser }) => {
   const context = await browser.newContext({ locale: 'en-US' });
   await context.addInitScript(() => {
     if (location.pathname.endsWith('/VoyageGO/')) localStorage.setItem('voyagego-language', 'fr');
@@ -50,25 +60,32 @@ test('manual language preference overrides browser language and survives the sel
   const page = await context.newPage();
   await page.goto('./');
   await expect(page).toHaveURL(/\/VoyageGO\/fr\/$/);
-  await page.locator('#language-select').selectOption('ar');
-  await expect(page).toHaveURL(/\/VoyageGO\/ar\/$/);
-  await expect(page.locator('html')).toHaveAttribute('dir', 'rtl');
-  await expect.poll(() => page.evaluate(() => localStorage.getItem('voyagego-language'))).toBe('ar');
+  await page.locator('#language-trigger').click();
+  await page.getByRole('button', { name: 'Español' }).click();
+  await expect(page).toHaveURL(/\/VoyageGO\/es\/$/);
+  await expect(page.locator('html')).toHaveAttribute('lang', 'es');
+  await expect.poll(() => page.evaluate(() => localStorage.getItem('voyagego-language'))).toBe('es');
   await context.close();
 });
 
-test('browser language is detected and unsupported languages fall back to French', async ({ browser }) => {
-  const english = await browser.newContext({ locale: 'en-US' });
-  const englishPage = await english.newPage();
-  await englishPage.goto('./');
-  await expect(englishPage).toHaveURL(/\/VoyageGO\/en\/$/);
-  await english.close();
+test('browser language is detected for all supported languages and unsupported languages fall back to French', async ({ browser }) => {
+  for (const [browserLocale, route] of [['fr-FR', 'fr'], ['ar-MA', 'ar'], ['en-US', 'en'], ['es-ES', 'es'], ['pt-BR', 'pt'], ['de-DE', 'fr']]) {
+    const context = await browser.newContext({ locale: browserLocale });
+    const page = await context.newPage();
+    await page.goto('./');
+    await expect(page).toHaveURL(new RegExp(`/VoyageGO/${route}/$`));
+    await context.close();
+  }
+});
 
-  const unsupported = await browser.newContext({ locale: 'de-DE' });
-  const fallbackPage = await unsupported.newPage();
-  await fallbackPage.goto('./');
-  await expect(fallbackPage).toHaveURL(/\/VoyageGO\/fr\/$/);
-  await unsupported.close();
+test('language menu supports keyboard dismissal and exposes all five locales', async ({ page }) => {
+  await page.goto('fr/');
+  const trigger = page.getByRole('button', { name: 'Choisir une langue' });
+  await trigger.click();
+  await expect(page.getByRole('button', { name: 'Español' })).toBeVisible();
+  await page.keyboard.press('Escape');
+  await expect(page.locator('#language-menu')).toBeHidden();
+  await expect(trigger).toHaveAttribute('aria-expanded', 'false');
 });
 
 test('system color scheme changes the interface without reloading', async ({ page }) => {
@@ -80,21 +97,24 @@ test('system color scheme changes the interface without reloading', async ({ pag
   expect(dark).not.toBe(light);
 });
 
-test('desktop, tablet and narrow mobile layouts stay within the viewport in LTR and RTL', async ({ page }) => {
+test('desktop, tablet and narrow mobile layouts stay within the viewport in LTR and RTL', async ({ browser }) => {
   for (const locale of ['fr', 'ar']) {
+    const context = await browser.newContext({ viewport: { width: 1440, height: 900 } });
+    const page = await context.newPage();
     await page.goto(`${locale}/`);
     for (const width of [320, 375, 430, 768, 1024, 1440]) {
       await page.setViewportSize({ width, height: 900 });
       const dimensions = await page.evaluate(() => ({ body: document.body.scrollWidth, viewport: document.documentElement.clientWidth }));
       expect(dimensions.body, `${locale} at ${width}px`).toBeLessThanOrEqual(dimensions.viewport);
     }
+    await context.close();
   }
 });
 
-test('@a11y localized pages pass axe WCAG 2.2 AA checks', async ({ page }) => {
-  for (const locale of ['fr', 'en', 'ar']) {
-    await page.goto(`${locale}/`);
-    await page.locator('#map-stage [data-destination="ma"]').waitFor();
+test('@a11y all five localized pages pass axe WCAG 2.2 AA checks', async ({ page }) => {
+  for (const locale of locales) {
+    await page.goto(`${locale.code}/`);
+    await expect.poll(() => page.locator('#country-picker option').count()).toBeGreaterThan(150);
     const results = await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa', 'wcag21aa', 'wcag22aa']).analyze();
     expect(results.violations.map(({ id, impact, help }) => ({ id, impact, help }))).toEqual([]);
   }

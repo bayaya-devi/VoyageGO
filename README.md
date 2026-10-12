@@ -1,35 +1,41 @@
-# VoyageGo — Portail international V1
+# VoyageGo — portail international immersif V2
 
-VoyageGo est le portail central de destinations nationales. La V1 présente le Maroc avec un lien fonctionnel vers [MarocoGO](https://bayaya-devi.github.io/MarocoGO/) et signale France, Espagne, Italie et Portugal comme destinations à venir. Les sites nationaux restent indépendants.
+VoyageGo relie des portails nationaux indépendants. Le Maroc ouvre [MarocoGO](https://bayaya-devi.github.io/MarocoGO/); la France, l’Espagne, l’Italie et le Portugal restent annoncés « bientôt disponibles ». Aucun autre dépôt national n’est modifié par ce projet.
 
 ## Déploiement
 
-Le projet est un site statique sans étape de compilation. Dans GitHub, ouvrir **Settings → Pages**, choisir **Deploy from a branch**, puis `main` et `/ (root)`. Le dépôt utilise déjà cette méthode de publication. Le site est servi à l’adresse `https://bayaya-devi.github.io/VoyageGO/`.
+Site statique servi à `https://bayaya-devi.github.io/VoyageGO/`. Le dépôt GitHub Pages est configuré pour publier la branche `main` à la racine; le globe Three.js et les données géographiques sont intégrés au dépôt, sans CDN d’exécution.
 
 ## Architecture
 
-- `index.html` choisit la langue initiale : préférence manuelle mémorisée, langue du navigateur, puis français.
-- `fr/`, `en/` et `ar/` fournissent des URL linguistiques stables, avec `lang`, direction, métadonnées et balises alternatives adaptés.
-- `app.js` assemble les interfaces, interactions et pages d’information.
-- `ordinateur-*.js` et `telephone-*.js` conservent les six points d’entrée de présentation; `locales/` centralise les ressources propres à chaque langue.
-- `data/countries.js` est le registre centralisé des plateformes nationales (identifiants ISO, noms traduits, URL, état, coordonnées et style).
-- `geography/europe-north-africa.geojson` contient la géométrie régionale simplifiée issue de Natural Earth via le dépôt `datasets/geo-countries`. Les données géographiques sont embarquées : la carte ne dépend pas d’une requête vers un tiers à l’exécution.
-- `styles.css` définit les thèmes système clair/sombre, la mise en page responsive, les états de focus et les mouvements réduits.
-- `FRONTEND-CONSTITUTION.md` reste la référence produit et design.
+- `index.html` choisit la langue manuelle enregistrée, puis celle du navigateur, puis le français.
+- `/fr/`, `/en/`, `/ar/`, `/es/` et `/pt/` sont les routes linguistiques; l’arabe est RTL.
+- `app.js` compose le récit, les routes légales et les contrôles; les entrées `ordinateur-*` et `telephone-*` chargent cinq catalogues dédiés.
+- `globe.js` gère la scène Three.js, le mouvement de caméra piloté par le défilement, les frontières, la sélection pays et le secours SVG interactif.
+- `vendor/` contient Three.js 0.186.1 et sa licence MIT. `data/countries.js` centralise les pays et l’état vérifié des portails.
+- `geography/world-countries.geojson` contient 177 unités géographiques Natural Earth avec noms localisés. `geography/etopo-world-relief.jpg` est une image de relief mondial ETOPO 2022 fournie par le service cartographique NOAA.
+- `FRONTEND-CONSTITUTION.md` est révisée en version 2.0 pour formaliser le parcours immersif et les cinq langues.
 
-## Fonctionnalités et limites V1
+## Fonctionnalités et limites
 
-- La carte vectorielle régionale permet de sélectionner le Maroc et la France; une liste de destinations offre une alternative clavier/tactile.
-- MarocoGO ouvre son site indépendant. FrancoGO, Espagne, Italie et Portugal sont explicitement annoncés comme à venir.
-- Le bouton de connexion n’invente pas d’authentification; il indique que le compte central n’est pas encore disponible.
-- Aucun outil d’analyse ou cookie publicitaire n’est intégré. La préférence de langue est conservée dans `localStorage` sur le domaine VoyageGo; elle n’est pas partagée automatiquement avec les domaines nationaux.
-- Les pages légales sont structurées et traduites, mais contiennent des champs à compléter pour l’identité et les coordonnées de l’entité exploitante. Elles ne constituent pas une validation juridique et sont exclues de l’indexation tant que ces données restent à confirmer.
-- La carte est une projection SVG interactive avec relief visuel stylisé et ombrage; elle n’est pas un globe WebGL ni un modèle numérique d’élévation. Le rendu reste disponible sans WebGL.
+- Accueil sans barre de navigation classique, commandes de langue flottantes, narration au scroll et globe mondial 3D.
+- Relief ombré ETOPO 2022; frontières mondiales Natural Earth; globe tactile et survolable. Le sélecteur pays au clavier et la carte SVG interactive forment les alternatives accessibles.
+- Le Maroc redirige vers MarocoGO. La France et les autres destinations futures affichent un statut exact et une action désactivée.
+- La langue manuelle reste dans le `localStorage` du domaine VoyageGo; elle n’est pas partagée automatiquement entre les domaines nationaux.
+- Aucun traceur ou compte central n’est activé. Les pages juridiques restent des brouillons à compléter par l’entité exploitante et ne constituent pas un avis juridique.
+- Les performances de terrain/Core Web Vitals et l’expérience sur appareils physiques doivent encore être mesurées; elles ne sont pas déclarées atteintes par les tests locaux.
 
 ## Vérification locale
 
-Servir le dossier via HTTP (par exemple `python -m http.server 8000`) et ouvrir la racine du projet. Les URL `/fr/`, `/en/` et `/ar/` sont les points d’entrée localisés.
+```powershell
+npm install
+npm run test:e2e
+npm run test:a11y
+```
 
-## Données cartographiques
+Les tests démarrent un serveur statique local sous `/VoyageGO/` via Playwright. Pour une simple prévisualisation, servir le dossier à la racine d’un serveur HTTP et ouvrir `/fr/` ou une autre route localisée.
 
-Les frontières sont adaptées depuis [datasets/geo-countries](https://github.com/datasets/geo-countries), dont les géométries sont fondées sur Natural Earth. Le fichier livré est une extraction simplifiée de l’Europe occidentale et de l’Afrique du Nord pour l’affichage de la V1.
+## Sources géographiques
+
+- Frontières et noms de pays : [Natural Earth, admin-0 1:110m](https://github.com/nvkelso/natural-earth-vector), domaine public. Le jeu est fourni avec ses noms arabe, anglais, espagnol, français et portugais.
+- Relief : [NOAA NCEI ETOPO 2022](https://www.ncei.noaa.gov/products/etopo-global-relief-model), service de relief ombré global. L’image locale est préexportée en projection équirectangulaire pour le globe; elle n’est pas recalculée sur le navigateur.

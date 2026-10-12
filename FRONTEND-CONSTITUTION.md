@@ -1,10 +1,10 @@
 # VOYAGEGO — FRONTEND CONSTITUTION
 
-**Version :** 1.0.0  
+**Version :** 2.0.0
 **Statut :** référence normative de conception et de développement  
-**Portée :** portail mère VoyageGo (FR, AR, EN), identité transversale réutilisable par les applications pays  
+**Portée :** portail mère VoyageGo (FR, AR, EN, ES, PT), identité transversale réutilisable par les applications pays
 **Pays initiaux :** Maroc (MarocoGO) et France (FrancoGO)  
-**Date :** 11 octobre 2026
+**Date :** 12 octobre 2026
 
 > **Principe cardinal :** une interface qui se fait oublier, une expérience qui donne envie de découvrir. VoyageGo est un portail de sélection de pays, non un catalogue, un comparateur ni un moteur de réservation.
 
@@ -29,27 +29,25 @@ En cas de conflit, appliquer la règle de rang supérieur. Les animations ne doi
 
 ## 3. Structure canonique de l'accueil
 
-### 3.1 En-tête permanent
+### 3.1 Commandes de la page d'accueil immersive
 
-- En-tête visible en permanence, fixé en haut, non intrusif, sans masquer le contenu.
-- Logo VoyageGo officiel à gauche en LTR et à droite en RTL, cliquable vers l'accueil.
-- Sélecteur de langue discret, accessible au clavier, nom explicite dans la langue affichée.
-- Bouton de connexion sous forme d'icône avec libellé accessible ; libellé visible au survol et au focus, et solution lisible au toucher.
-- Aspect de verre très transparent : viser **80–84 % de transparence perçue** (alpha du fond d'environ 0,16–0,20) ; augmenter localement l'opacité si nécessaire pour garantir la lisibilité. Ne pas appliquer aveuglément un alpha de 0,82.
-- Flou léger conditionnel (`backdrop-filter`), bordure argentée à peine perceptible ; désactiver les effets coûteux si nécessaire.
+- **Aucun en-tête classique** sur l'accueil : le logo officiel est intégré à la scène, sans barre de navigation ni bandeau.
+- Commande flottante compacte pour la langue, en icône, accessible au clavier et au toucher ; son panneau liste FR, AR, EN, ES et PT.
+- Ne pas afficher de connexion sur l'accueil tant qu'un fournisseur d'identité réel n'est pas configuré.
+- Les pages secondaires (juridiques et contact) conservent un en-tête transparent pleine largeur avec le logo et le sélecteur de langue.
 - Tenir compte des encoches et zones sûres mobiles (`safe-area-inset-*`).
 
-### 3.2 Séquence 1 : découverte et carte
+### 3.2 Parcours mondial immersif
 
-- Titre court, inspirant, dans la langue active. Exemple FR : « La découverte commence ici. »
-- Sous-titre très bref : « Choisissez votre destination. »
-- **Carte géographique 3D en relief, non une image rectangulaire**, fusionnée avec le fond de la page.
-- Vue initiale centrée sur l'Europe occidentale et l'Afrique du Nord, montrant nettement France et Maroc.
-- Relief et frontières fondés sur des données géographiques documentées, projection et positionnement exacts.
-- France et Maroc mis en valeur sans surcharger la carte de marqueurs. Survol/focus : nom du pays, animation discrète et affordance de sélection ; clic/tap : accès à l'application correspondante si disponible.
-- Navigation accessible alternative avec deux destinations clairement identifiées et actionnables, indépendante de la 3D.
-- Carte extensible à d'autres pays par configuration, sans duplication de composants.
-- Le scroll révèle la carte et modifie subtilement la perspective ; il ne détourne pas le contrôle du scroll utilisateur.
+- Le globe officiel VoyageGo est le personnage central : objet 3D, cohérent avec la Terre, l'anneau, la flèche et les couleurs du logo fourni.
+- Séquence d'ouverture : « Le monde vous attend » puis le titre localisé « Votre prochaine découverte commence ici ».
+- Au défilement naturel, le même globe accompagne la présentation **Découvrir → Préparer → Explorer**, puis s'ouvre sur le monde entier.
+- La Terre mondiale est une scène 3D éclairée et texturée par des données de relief documentées ; les frontières s'appuient sur Natural Earth.
+- Vue initiale orientée vers l'Europe occidentale et l'Afrique du Nord ; le Maroc et la France restent identifiables.
+- Survol, toucher et sélection clavier par commande accessible : nom du pays, drapeau, disponibilité et action exacte selon le registre.
+- Les destinations futures affichent une action désactivée « Bientôt disponible » ; aucune URL nationale n'est inventée.
+- Prévoir une carte SVG 2D réellement interactive si WebGL est absent ou perdu.
+- Le scroll reste naturel : aucune capture, aucun défilement forcé ni nombre d'étapes imposé.
 
 ### 3.3 Séquence 2 : ce que permet l'écosystème
 
@@ -65,7 +63,7 @@ En cas de conflit, appliquer la règle de rang supérieur. Les animations ne doi
 - Liens fonctionnels vers : mentions légales, politique de confidentialité, politique de cookies, gestion des préférences de cookies, conditions d'utilisation et contact.
 - Copyright dynamique, identité de l'éditeur et liens de navigation utiles.
 - Les documents légaux doivent refléter les données, prestataires, pays d'exploitation et traitements réels ; ne jamais présenter un modèle générique comme une conformité garantie.
-- Les liens légaux doivent exister dans chacune des trois langues avant publication publique, ou être clairement indiqués comme non disponibles pendant une phase privée de développement.
+- Les liens légaux doivent exister dans chacune des cinq langues avant publication publique, ou être clairement indiqués comme non disponibles pendant une phase privée de développement.
 
 ### 3.5 Retour en haut
 
@@ -107,15 +105,15 @@ En cas de conflit, appliquer la règle de rang supérieur. Les animations ne doi
 - Micro-interactions 3D de faible amplitude, sans rotations distrayantes, avec retour d'état clair.
 - Textures organiques légères et traits volontairement imparfaits ; ne pas introduire d'erreurs d'orthographe ou d'alignement.
 
-## 5. Internationalisation stricte
+## 5. Internationalisation stricte — cinq langues
 
-### Trois expériences linguistiques séparées
+### Cinq expériences linguistiques séparées
 
-- Routes indépendantes : `/fr/`, `/ar/`, `/en/` ; chaque route possède ses écrans, contenus, métadonnées, labels, messages d'erreur, textes d'accessibilité et documents légaux localisés.
+- Routes indépendantes : `/fr/`, `/ar/`, `/en/`, `/es/`, `/pt/` ; chaque route possède ses écrans, contenus, métadonnées, labels, messages d'erreur, textes d'accessibilité et documents légaux localisés.
 - Partage autorisé du moteur (auth, carte, design tokens, sécurité, types), **mais pas de chaînes d'interface provenant d'une autre langue**.
 - Aucun fallback silencieux vers le français ou l'anglais dans une interface publiée ; si une traduction manque, bloquer la publication de la route concernée et signaler l'erreur au build.
 - Les noms propres de marques (« VoyageGo », « MarocoGO », « FrancoGO ») peuvent conserver leur graphie officielle ; ce ne sont pas des erreurs de localisation.
-- `lang` HTML correct par route ; `dir="rtl"` sur `/ar/`, `dir="ltr"` sur `/fr/` et `/en/`.
+- `lang` HTML correct par route ; `dir="rtl"` sur `/ar/`, `dir="ltr"` sur `/fr/`, `/en/`, `/es/` et `/pt/`.
 - Arabe : composition RTL réelle, logo/menus/alignements inversés selon la logique de lecture, flèches directionnelles adaptées ; préserver l'orientation des cartes géographiques et des pictogrammes universels lorsque leur inversion serait incorrecte.
 - Isolation bidirectionnelle (`bdi`/`dir="auto"`) pour marques latines, URLs et données mélangées dans les textes arabes.
 - Détection initiale : préférence explicite mémorisée d'abord, sinon langue du navigateur, sinon français par défaut. Ne pas géolocaliser la langue et ne pas changer automatiquement la langue en cours de navigation.
@@ -139,7 +137,7 @@ En cas de conflit, appliquer la règle de rang supérieur. Les animations ne doi
 - Focus visible, ordre de tabulation logique, titres hiérarchiques, landmarks, skip link vers contenu, alternatives textuelles.
 - Aucune fonction exclusivement disponible au hover ; tous les boutons fonctionnent au toucher et au clavier.
 - Cibles et espacements tactiles suffisants ; zoom navigateur jusqu'à 200 % sans perte de fonction.
-- Viser WCAG 2.2 AA et tester les trois langues avec lecteurs d'écran et navigation clavier.
+- Viser WCAG 2.2 AA et tester les cinq langues avec lecteurs d'écran et navigation clavier.
 
 ## 8. Performance et fiabilité
 
@@ -171,68 +169,45 @@ En cas de conflit, appliquer la règle de rang supérieur. Les animations ne doi
 ## 11. Structure technique indicative
 
 ```text
-src/
-  app/
-    routes/
-      fr/
-      ar/
-      en/
-    providers/
-  design-system/
-    tokens/
-    components/
-    motion/
-  features/
-    country-map/
-    country-selection/
-    account-entry/
-    legal/
-  locales/
-    fr/
-    ar/
-    en/
-  data/
-    countries.ts
-  shared/
-    accessibility/
-    security/
-    utils/
-public/
-  brand/
-  geography/
-  icons/
+app.js / globe.js
+data/countries.js
+locales/{fr,en,ar,es,pt}.js
+{ordinateur,telephone}-{fr,en,ar,es,pt}.js
+{fr,en,ar,es,pt}/index.html
+geography/{world-countries.geojson,etopo-world-relief.jpg}
+vendor/{three.module.js,three.core.js}
 ```
 
-- Chaque langue possède ses routes et son contenu dédiés ; les composants purement fonctionnels peuvent être partagés sans imposer de traduction partielle.
-- React + TypeScript ; moteur de carte 3D (Three.js/React Three Fiber ou équivalent), animations au scroll (GSAP ou équivalent) selon les mesures de performance.
-- Séparer les données géographiques, la configuration des pays, la navigation et les composants de présentation.
-- Les dépendances et choix finaux doivent être validés après prototype de performance, en particulier sur Android modeste.
+- L'implémentation V2 conserve le site statique existant et ses modules JavaScript natifs ; elle n'ajoute ni framework ni étape de compilation.
+- Three.js est localisé dans `vendor/` pour ne pas dépendre d'un CDN pendant l'exécution. Les animations au scroll sont natives et non bloquantes.
+- Séparer les données géographiques, le registre des destinations, les ressources linguistiques, la navigation et la présentation.
+- Toute dépendance supplémentaire doit être justifiée et mesurée, en particulier sur Android modeste.
 
 ## 12. Règles de non-régression et validation
 
 ### Contrôles obligatoires avant merge/publication
 
 - [ ] Logo officiel et palette strictement respectés.
-- [ ] En-tête permanent, transparent et lisible sur tous les fonds.
-- [ ] Carte centrée France–Maroc, frontières et positions vérifiées.
+- [ ] Aucun en-tête classique sur l'accueil ; en-tête transparent pleine largeur sur les pages secondaires.
+- [ ] Globe mondial centré au départ sur Europe occidentale–Afrique du Nord, frontières et relief correctement attribués.
 - [ ] Pays disponibles cliquables ; pays non disponibles non trompeurs.
 - [ ] Alternative à la 3D utilisable au clavier et au toucher.
 - [ ] Deux séquences d'accueil, sans cartes marketing inutiles.
 - [ ] Retour en haut visible uniquement près du footer, sans obstruction.
-- [ ] FR, AR et EN : aucune chaîne étrangère non autorisée ; RTL complet en AR.
+- [ ] FR, AR, EN, ES et PT : aucune chaîne étrangère non autorisée ; RTL complet en AR.
 - [ ] Détection et mémorisation de langue correctes.
 - [ ] Navigation, authentification et états indisponibles honnêtes.
 - [ ] Pages légales réelles, liens fonctionnels, politique cookies conforme à l'implémentation.
 - [ ] Navigation clavier, lecteurs d'écran, contrastes, réduction de mouvement.
 - [ ] Tests mobile/desktop, réseaux lents, échec WebGL, zoom et orientations.
 - [ ] Mesures Core Web Vitals et absence d'erreurs bloquantes.
-- [ ] Tests unitaires, intégration, E2E et captures visuelles des trois langues.
+- [ ] Tests unitaires, intégration, E2E et captures visuelles des cinq langues.
 
 ### Processus de modification
 
 1. Diagnostiquer et documenter le changement.
 2. Modifier la plus petite surface possible.
-3. Vérifier les trois langues, les deux pays et tous les formats d'écran.
+3. Vérifier les cinq langues, le registre des destinations et tous les formats d'écran.
 4. Exécuter les tests et mesurer la performance.
 5. Relire la conformité visuelle, l'accessibilité et la sécurité.
 6. Publier seulement si les critères précédents sont satisfaits ; conserver une possibilité de retour arrière.
@@ -247,13 +222,13 @@ public/
 - Bloquer le scroll, forcer les animations, cacher un bouton essentiel ou dégrader l'accessibilité pour un effet 3D.
 - Modifier les dépôts MarocoGO/FrancoGO sans validation spécifique.
 
-## 14. Livrables de la V1
+## 14. Livrables de la V2 immersive
 
 1. Constitution frontend versionnée dans le dépôt VoyageGo.
 2. Assets officiels de marque validés et optimisés.
-3. Frontend français, frontend arabe RTL et frontend anglais, avec routes indépendantes.
-4. Accueil à deux séquences et footer légal.
-5. Carte géographique interactive 3D avec alternative 2D et sélection Maroc/France.
+3. Frontends français, arabe RTL, anglais, espagnol et portugais, avec routes indépendantes.
+4. Accueil sans en-tête classique, parcours immersif, narration et footer légal.
+5. Globe et carte du monde 3D interactifs, données de relief et de frontières documentées, alternative 2D et sélecteur clavier.
 6. Sélecteur de langue avec préférence mémorisée.
 7. Point d'entrée de connexion honnête et compatible avec l'authentification centralisée future.
 8. Tests automatisés, rapport d'accessibilité et vérifications de performance.
