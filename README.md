@@ -1,32 +1,35 @@
-# VoyageGo — Portail international
+# VoyageGo — Portail international V1
 
-Site web statique sans build, prêt pour GitHub Pages.
+VoyageGo est le portail central de destinations nationales. La V1 présente le Maroc avec un lien fonctionnel vers [MarocoGO](https://bayaya-devi.github.io/MarocoGO/) et signale France, Espagne, Italie et Portugal comme destinations à venir. Les sites nationaux restent indépendants.
 
-## Installation
+## Déploiement
 
-1. Créer le dépôt public `VoyageGo`.
-2. Déposer **tous les fichiers de cette livraison à la racine** du dépôt (aucun dossier nécessaire).
-3. Settings → Pages → Deploy from a branch → `main` → `/ (root)`.
-4. Ouvrir `https://bayaya-devi.github.io/VoyageGo/` après publication.
+Le projet est un site statique sans étape de compilation. Dans GitHub, ouvrir **Settings → Pages**, choisir **Deploy from a branch**, puis `main` et `/ (root)`. Le dépôt utilise déjà cette méthode de publication. Le site est servi à l’adresse `https://bayaya-devi.github.io/VoyageGO/`.
 
 ## Architecture
 
-`FRONTEND-CONSTITUTION.md` → web (`index.html`, `styles.css`, `app.js`) → ordinateur / téléphone → FR / AR / EN (six fichiers `ordinateur-*.js` et `telephone-*.js`). Le moteur est partagé mais chaque couple appareil/langue a son module propre. Les futurs frontends application seront un autre produit, non inclus ici.
+- `index.html` choisit la langue initiale : préférence manuelle mémorisée, langue du navigateur, puis français.
+- `fr/`, `en/` et `ar/` fournissent des URL linguistiques stables, avec `lang`, direction, métadonnées et balises alternatives adaptés.
+- `app.js` assemble les interfaces, interactions et pages d’information.
+- `ordinateur-*.js` et `telephone-*.js` conservent les six points d’entrée de présentation; `locales/` centralise les ressources propres à chaque langue.
+- `data/countries.js` est le registre centralisé des plateformes nationales (identifiants ISO, noms traduits, URL, état, coordonnées et style).
+- `geography/europe-north-africa.geojson` contient la géométrie régionale simplifiée issue de Natural Earth via le dépôt `datasets/geo-countries`. Les données géographiques sont embarquées : la carte ne dépend pas d’une requête vers un tiers à l’exécution.
+- `styles.css` définit les thèmes système clair/sombre, la mise en page responsive, les états de focus et les mouvements réduits.
+- `FRONTEND-CONSTITUTION.md` reste la référence produit et design.
 
-La langue est déduite du navigateur au premier passage, puis conservée via `localStorage`. Le thème suit `prefers-color-scheme` automatiquement. La carte géographique charge des frontières GeoJSON depuis `datasets/geo-countries` (GitHub) et propose un accès par boutons si la ressource est indisponible. La perspective et les ombres créent un relief visuel léger ; ce n'est **pas encore un moteur de terrain 3D**. Une vraie carte topographique 3D pourra remplacer cette couche sans changer les interfaces linguistiques.
+## Fonctionnalités et limites V1
 
-Le bouton compte n'effectue aucune fausse connexion. FrancoGO est marqué comme indisponible jusqu'à réception de son URL. Les liens juridiques affichent un avertissement : **ils doivent être remplacés par de vraies pages validées avant une mise en production publique**. Le site n'utilise pas de cookies marketing ; seule la préférence linguistique est stockée localement. Les polices Google et le GeoJSON sont chargés depuis des services tiers : revoir ces dépendances dans la politique de confidentialité et les auto-héberger si nécessaire.
-
-## Fichiers
-
-- `index.html` — entrée du site
-- `styles.css` — styles adaptatifs et thèmes système
-- `app.js` — moteur de rendu, navigation, carte, interactions
-- `ordinateur-fr.js`, `ordinateur-en.js`, `ordinateur-ar.js` — frontends ordinateur
-- `telephone-fr.js`, `telephone-en.js`, `telephone-ar.js` — frontends téléphone et tablette
-- `voyagego-logo.png` — logo transparent
-- `FRONTEND-CONSTITUTION.md` — règles normatives
+- La carte vectorielle régionale permet de sélectionner le Maroc et la France; une liste de destinations offre une alternative clavier/tactile.
+- MarocoGO ouvre son site indépendant. FrancoGO, Espagne, Italie et Portugal sont explicitement annoncés comme à venir.
+- Le bouton de connexion n’invente pas d’authentification; il indique que le compte central n’est pas encore disponible.
+- Aucun outil d’analyse ou cookie publicitaire n’est intégré. La préférence de langue est conservée dans `localStorage` sur le domaine VoyageGo; elle n’est pas partagée automatiquement avec les domaines nationaux.
+- Les pages légales sont structurées et traduites, mais contiennent des champs à compléter pour l’identité et les coordonnées de l’entité exploitante. Elles ne constituent pas une validation juridique et sont exclues de l’indexation tant que ces données restent à confirmer.
+- La carte est une projection SVG interactive avec relief visuel stylisé et ombrage; elle n’est pas un globe WebGL ni un modèle numérique d’élévation. Le rendu reste disponible sans WebGL.
 
 ## Vérification locale
 
-Ouvrir via un serveur HTTP (pas en `file://`) : `python -m http.server 8000` puis `http://localhost:8000`.
+Servir le dossier via HTTP (par exemple `python -m http.server 8000`) et ouvrir la racine du projet. Les URL `/fr/`, `/en/` et `/ar/` sont les points d’entrée localisés.
+
+## Données cartographiques
+
+Les frontières sont adaptées depuis [datasets/geo-countries](https://github.com/datasets/geo-countries), dont les géométries sont fondées sur Natural Earth. Le fichier livré est une extraction simplifiée de l’Europe occidentale et de l’Afrique du Nord pour l’affichage de la V1.
