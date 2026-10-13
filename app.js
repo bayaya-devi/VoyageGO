@@ -120,17 +120,20 @@ function homeContent(copy) {
   return `<main id="main-content" tabindex="-1" class="immersive-page">
     <div class="journey-track" id="journey-track">
       <div class="journey-stage" id="journey-stage" data-progress="0">
+        <div class="living-horizon" aria-hidden="true"><span></span><span></span><span></span></div>
+        <div class="destination-visual" id="destination-visual" aria-hidden="true"><img data-destination-layer="0" alt=""><img data-destination-layer="1" alt=""></div>
         <div id="globe-host" aria-hidden="true"></div>
-        <div id="globe-interaction" aria-hidden="true"></div>
+        <div id="globe-interaction" role="application" tabindex="0" aria-label="${escapeHtml(copy.mapLabel)}"></div>
         <p id="globe-status" class="sr-only" role="status" aria-live="polite"></p>
         <p id="country-announcement" class="sr-only" role="status" aria-live="polite"></p>
         <img class="scene-brand" id="scene-brand" src="${new URL('voyagego-logo-2x.png', document.baseURI).href}" width="1086" height="362" alt="VoyageGo">
-        <div class="hero-copy" id="scene-welcome"><h1 class="hero-tagline" id="hero-title">${escapeHtml(copy.tag)}</h1></div>
+        <div class="hero-copy" id="scene-welcome"><h1 class="hero-tagline" id="hero-title">${escapeHtml(copy.tag)}</h1><span class="scroll-arrow" aria-hidden="true">${icon('arrow')}</span></div>
         <ol class="stage-steps" id="scene-steps" aria-label="${escapeHtml(copy.stepLabel)}">${stepNames}</ol>
         <section class="map-copy" id="map-section" aria-labelledby="map-title" aria-hidden="true" inert>
           <h2 id="map-title"><span class="map-title-emphasis">${escapeHtml(copy.mapTitleEmphasis)}</span> ${escapeHtml(copy.mapTitleRest)}</h2>
-          <label class="country-picker-label" for="country-picker">${escapeHtml(copy.countrySelectLabel)}</label>
-          <select id="country-picker"><option value="">${escapeHtml(copy.countryPrompt)}</option>${destinationOptions(copy)}</select>
+          <p class="map-instruction-copy">${escapeHtml(copy.mapIntro)}</p>
+          <label class="sr-only" for="country-picker">${escapeHtml(copy.countrySelectLabel)}</label>
+          <select id="country-picker" class="sr-only" tabindex="-1"><option value="">${escapeHtml(copy.countryPrompt)}</option>${destinationOptions(copy)}</select>
           <div id="map-fallback" data-map-label="${escapeHtml(copy.mapLabel)}" hidden></div>
           <aside id="country-popup" class="country-popup" aria-label="${escapeHtml(copy.countryDetails)}" hidden></aside>
           <p class="map-attribution">${escapeHtml(copy.mapAttribution)}</p>

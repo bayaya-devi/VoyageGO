@@ -37,3 +37,25 @@ export const destinations = [
 export const localeCodes = ['fr', 'en', 'ar', 'es', 'pt'];
 export const worldDataUrl = '../geography/world-countries.geojson';
 export const reliefTextureUrl = '../geography/etopo-world-relief.jpg';
+
+/** Curated destination photography. Unlisted countries intentionally use the atmospheric fallback. */
+export const destinationVisuals = {
+  MAR: {
+    src: new URL('../assets/destinations/morocco-dunes.jpg', import.meta.url).href,
+    source: 'https://commons.wikimedia.org/wiki/File:Big_sand_dunes.jpg',
+    credit: 'Wikimedia Commons',
+    position: 'center 54%',
+  },
+  FRA: {
+    src: new URL('../assets/destinations/france-alps.jpg', import.meta.url).href,
+    source: 'https://commons.wikimedia.org/wiki/File:French_Alps_(233127345).jpeg',
+    credit: 'Loïc Faucon · Wikimedia Commons',
+    position: 'center 52%',
+  },
+  THA: {
+    src: new URL('../assets/destinations/thailand-jungle.jpg', import.meta.url).href,
+    source: 'https://commons.wikimedia.org/wiki/File:Dramatic_karst_landscape_of_Surat_Thani,_Khlong_Phanom_jungle,_Thailand.jpg',
+    credit: 'Vyacheslav Argenberg · Wikimedia Commons',
+    position: 'center 52%',
+  },
+};

@@ -1,5 +1,5 @@
 import * as THREE from './vendor/three.module.js';
-import { destinations, reliefTextureUrl, worldDataUrl } from './data/countries.js';
+import { destinations, destinationVisuals, reliefTextureUrl, worldDataUrl } from './data/countries.js';
 
 const localeProperty = { fr: 'nameFr', en: 'nameEn', ar: 'nameAr', es: 'nameEs', pt: 'namePt' };
 const destinationByIso = new Map(destinations.map((destination) => [destination.iso3, destination]));
@@ -81,6 +81,8 @@ export async function mountGlobe(copy) {
   const picker = document.querySelector('#country-picker');
   const popup = document.querySelector('#country-popup');
   const mapSection = document.querySelector('#map-section');
+  const destinationVisual = document.querySelector('#destination-visual');
+  const destinationLayers = [...document.querySelectorAll('[data-destination-layer]')];
   if (!canvasHost || !interaction || !picker || !popup || !mapSection) return () => {};
 
   const response = await fetch(new URL(worldDataUrl.replace(/^\.\.\//, './'), import.meta.url));
@@ -96,6 +98,32 @@ export async function mountGlobe(copy) {
   picker.dataset.worldLoaded = 'true';
   picker.innerHTML = `<option value="">${copy.countryPrompt}</option>${countries.map(({ feature, name }) => `<option value="${feature.properties.iso3}">${flagFor(feature.properties.iso2)} ${name}</option>`).join('')}`;
 
+  let activeDestinationLayer = -1;
+  const setDestinationScene = (iso3) => {
+    const visual = destinationVisuals[iso3];
+    if (!destinationVisual || !destinationLayers.length || !visual) {
+      destinationVisual?.classList.remove('is-visible');
+      destinationVisual?.removeAttribute('data-country');
+      return;
+    }
+    const nextLayerIndex = (activeDestinationLayer + 1) % destinationLayers.length;
+    const nextLayer = destinationLayers[nextLayerIndex];
+    nextLayer.onload = () => {
+      destinationLayers.forEach((layer, index) => layer.classList.toggle('is-active', index === nextLayerIndex));
+      destinationVisual.classList.add('is-visible');
+      destinationVisual.dataset.country = iso3;
+      activeDestinationLayer = nextLayerIndex;
+    };
+    nextLayer.onerror = () => {
+      nextLayer.removeAttribute('src');
+      nextLayer.classList.remove('is-active');
+      destinationVisual.classList.remove('is-visible');
+      destinationVisual.removeAttribute('data-country');
+    };
+    nextLayer.style.objectPosition = visual.position || 'center';
+    nextLayer.src = visual.src;
+  };
+
   const setCountry = (feature, { position = null, announce = true } = {}) => {
     if (!feature) return;
     const properties = feature.properties;
@@ -108,7 +136,9 @@ export async function mountGlobe(copy) {
     const action = available
       ? `<a class="country-action" href="${destination.url}">${copy.discover}</a>`
       : `<button class="country-action" type="button" disabled>${copy.comingSoon}</button>`;
-    popup.innerHTML = `<button class="popup-close" type="button" aria-label="${copy.close}">×</button><div class="popup-country"><span class="country-flag" aria-hidden="true">${flag}</span><div><strong lang="${copy.lang}" dir="auto">${name}</strong><span class="popup-status">${status}</span></div></div>${action}`;
+    const visual = destinationVisuals[iso3];
+    const credit = visual ? `<a class="photo-credit" href="${visual.source}" target="_blank" rel="noreferrer">${copy.photoCredit}: ${visual.credit}</a>` : '';
+    popup.innerHTML = `<button class="popup-close" type="button" aria-label="${copy.close}">×</button><div class="popup-country"><span class="country-flag" aria-hidden="true">${flag}</span><div><strong lang="${copy.lang}" dir="auto">${name}</strong><span class="popup-status">${status}</span></div></div><p class="country-invitation">${copy.countryInvitation}</p>${action}${credit}`;
     popup.hidden = false;
     popup.classList.toggle('is-available', Boolean(available));
     if (position) placePopup(popup, position.x, position.y);
@@ -116,6 +146,7 @@ export async function mountGlobe(copy) {
     picker.value = iso3 || '';
     if (announce) document.querySelector('#country-announcement').textContent = `${flag} ${name} — ${status}`;
     if (globe && feature) showCountryOutline(feature);
+    setDestinationScene(iso3);
   };
 
   const showCountryOutline = (feature) => {
@@ -337,14 +368,14 @@ export async function mountGlobe(copy) {
   };
   const onPointerMove = (event) => {
     if (!pointerDown || (event.pointerType === 'mouse' && !event.buttons)) {
-      if (event.pointerType === 'mouse' && progress >= .76 && progress < .995) interaction.classList.toggle('is-pointing-at-country', Boolean(pickFeature(event)));
+      if (event.pointerType === 'mouse' && progress >= .76) interaction.classList.add('is-pointing-at-country');
       return;
     }
     if (activePointers.has(event.pointerId)) activePointers.set(event.pointerId, { x: event.clientX, y: event.clientY });
     if (activePointers.size === 2) {
       const [a, b] = [...activePointers.values()];
       const distance = Math.hypot(a.x - b.x, a.y - b.y);
-      if (pinchDistance) zoom = THREE.MathUtils.clamp(zoom * distance / pinchDistance, .72, 1.45);
+      if (pinchDistance) zoom = THREE.MathUtils.clamp(zoom * distance / pinchDistance, .62, 2.65);
       pinchDistance = distance;
       stage.dataset.zoom = zoom.toFixed(2);
       dragged = true;
@@ -353,7 +384,8 @@ export async function mountGlobe(copy) {
     const dx = event.clientX - pointerDown.lastX;
     const dy = event.clientY - pointerDown.lastY;
     if (Math.abs(event.clientX - pointerDown.x) + Math.abs(event.clientY - pointerDown.y) > 7) dragged = true;
-    if (Math.abs(dx) > Math.abs(dy)) { dragX += dx * .004; dragY = THREE.MathUtils.clamp(dragY + dy * .002, -.7, .7); }
+    dragX += dx * .0042;
+    dragY = THREE.MathUtils.clamp(dragY + dy * .0042, -1.35, 1.35);
     pointerDown.lastX = event.clientX;
     pointerDown.lastY = event.clientY;
   };
@@ -370,7 +402,24 @@ export async function mountGlobe(copy) {
   const onWheel = (event) => {
     if (progress < .76) return;
     event.preventDefault();
-    zoom = THREE.MathUtils.clamp(zoom * Math.exp(-event.deltaY * .0012), .72, 1.45);
+    zoom = THREE.MathUtils.clamp(zoom * Math.exp(-event.deltaY * .0012), .62, 2.65);
+    stage.dataset.zoom = zoom.toFixed(2);
+  };
+  const onKeyDown = (event) => {
+    if (progress < .76) return;
+    const movement = .12;
+    if (event.key === 'ArrowLeft') dragX -= movement;
+    else if (event.key === 'ArrowRight') dragX += movement;
+    else if (event.key === 'ArrowUp') dragY = THREE.MathUtils.clamp(dragY - movement, -1.35, 1.35);
+    else if (event.key === 'ArrowDown') dragY = THREE.MathUtils.clamp(dragY + movement, -1.35, 1.35);
+    else if (event.key === '+' || event.key === '=') zoom = THREE.MathUtils.clamp(zoom * 1.16, .62, 2.65);
+    else if (event.key === '-' || event.key === '_') zoom = THREE.MathUtils.clamp(zoom / 1.16, .62, 2.65);
+    else if (event.key === 'Enter' || event.key === ' ') {
+      const rect = renderer.domElement.getBoundingClientRect();
+      const feature = pickFeature({ clientX: rect.left + rect.width / 2, clientY: rect.top + rect.height / 2 });
+      if (feature) setCountry(feature);
+    } else return;
+    event.preventDefault();
     stage.dataset.zoom = zoom.toFixed(2);
   };
   interaction.addEventListener('pointerdown', onPointerDown);
@@ -378,6 +427,7 @@ export async function mountGlobe(copy) {
   interaction.addEventListener('pointerup', onPointerUp);
   interaction.addEventListener('pointercancel', onPointerCancel);
   interaction.addEventListener('wheel', onWheel, { passive: false });
+  interaction.addEventListener('keydown', onKeyDown);
   window.addEventListener('resize', resize, { passive: true });
   window.addEventListener('scroll', onScroll, { passive: true });
   resize();
@@ -403,8 +453,11 @@ export async function mountGlobe(copy) {
     globe.position.y += (target.y - globe.position.y) * easing;
     const zoomedScale = target.scale * (progress >= .76 ? zoom : 1);
     globe.scale.setScalar(globe.scale.x + (zoomedScale - globe.scale.x) * easing);
-    globe.rotation.y += (progress * 1.15 + dragX - globe.rotation.y) * (pointerDown ? 1 : easing);
+    const geographicFocus = Math.min(progress, .46) * 1.15;
+    globe.rotation.y += (geographicFocus + dragX - globe.rotation.y) * (pointerDown ? 1 : easing);
     globe.rotation.x += ((-.04 + dragY - globe.rotation.x) * (pointerDown ? 1 : easing));
+    stage.dataset.rotationX = globe.rotation.x.toFixed(3);
+    stage.dataset.rotationY = globe.rotation.y.toFixed(3);
     placeInteraction();
     renderer.render(scene, camera);
   });
@@ -447,6 +500,7 @@ export async function mountGlobe(copy) {
     interaction.removeEventListener('pointerup', onPointerUp);
     interaction.removeEventListener('pointercancel', onPointerCancel);
     interaction.removeEventListener('wheel', onWheel);
+    interaction.removeEventListener('keydown', onKeyDown);
     document.body.classList.remove('map-active');
   };
 }

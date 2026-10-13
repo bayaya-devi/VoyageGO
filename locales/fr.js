@@ -6,7 +6,7 @@ export default {
   tag: 'LE MONDE VOUS ATTEND', intro: 'Un monde à explorer, pays après pays.',
   cta: 'Commencer votre voyage', scroll: 'Défiler pour explorer',
   mapEyebrow: 'Un monde de possibilités', mapTitle: 'Le monde à portée de regard', mapTitleEmphasis: 'Choisissez', mapTitleRest: 'votre prochaine destination.',
-  mapIntro: 'Touchez le globe, ou choisissez un pays dans la liste.',
+  mapIntro: 'Choisissez un pays sur la carte.', countryInvitation: 'Laissez ce paysage ouvrir la première page de votre prochain voyage.', photoCredit: 'Photographie',
   comingSoonMessage: 'Cette plateforme nationale sera annoncée lorsqu’elle sera prête.',
   mapLabel: 'Globe terrestre interactif et relief topographique mondial',
   mapUnavailable: 'Le globe n’a pas pu se charger. Choisissez un pays dans la liste ou la carte de secours.',

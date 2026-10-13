@@ -6,7 +6,7 @@ export default {
   tag: 'THE WORLD IS WAITING', intro: 'One world to explore, country by country.',
   cta: 'Start your journey', scroll: 'Scroll to explore',
   mapEyebrow: 'A world of possibilities', mapTitle: 'The world, within reach', mapTitleEmphasis: 'Choose', mapTitleRest: 'your next destination.',
-  mapIntro: 'Touch the globe, or choose a country from the list.',
+  mapIntro: 'Choose a country on the map.', countryInvitation: 'Let this landscape open the first page of your next journey.', photoCredit: 'Photograph',
   comingSoonMessage: 'This national platform will be announced when it is ready.',
   mapLabel: 'Interactive Earth globe with global topographic relief',
   mapUnavailable: 'The globe could not load. Choose a country from the list or the fallback map.',

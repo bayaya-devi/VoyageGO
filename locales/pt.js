@@ -6,7 +6,7 @@ export default {
   tag: 'O MUNDO ESPERA POR SI', intro: 'Um mundo para explorar, país após país.',
   cta: 'Comece a sua viagem', scroll: 'Deslize para explorar',
   mapEyebrow: 'Um mundo de possibilidades', mapTitle: 'O mundo ao alcance do olhar', mapTitleEmphasis: 'Escolha', mapTitleRest: 'o seu próximo destino.',
-  mapIntro: 'Toque no globo ou escolha um país na lista.',
+  mapIntro: 'Escolha um país no mapa.', countryInvitation: 'Deixe esta paisagem abrir a primeira página da sua próxima viagem.', photoCredit: 'Fotografia',
   comingSoonMessage: 'Esta plataforma nacional será anunciada quando estiver pronta.',
   mapLabel: 'Globo terrestre interativo com relevo topográfico mundial',
   mapUnavailable: 'Não foi possível carregar o globo. Escolha um país na lista ou no mapa alternativo.',

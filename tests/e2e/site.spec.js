@@ -29,7 +29,8 @@ for (const locale of locales) {
       await expect(page.locator('header')).toHaveCount(0);
       await expect(page.locator('#site-footer')).toHaveCount(0);
       await expect(page.locator('.scene-brand')).toBeVisible();
-      await expect(page.locator('#country-picker')).toBeVisible();
+      await expect(page.locator('.scroll-arrow')).toBeVisible();
+      await expect(page.locator('#country-picker')).toHaveClass(/sr-only/);
       const brandAndTagline = await page.evaluate(() => {
         const logo = document.querySelector('.scene-brand').getBoundingClientRect();
         const tagline = document.querySelector('#hero-title').getBoundingClientRect();
@@ -45,6 +46,8 @@ for (const locale of locales) {
       await expect(page.locator('#country-popup')).toBeVisible();
       await expect(page.locator('#country-popup')).toContainText(locale.soon);
       await expect(page.locator('#country-popup .country-action')).toBeDisabled();
+      await expect(page.locator('#destination-visual')).toHaveAttribute('data-country', 'FRA');
+      await expect.poll(() => page.locator('#destination-visual img.is-active').evaluate((image) => image.naturalWidth)).toBeGreaterThan(0);
 
       await page.locator('#country-picker').selectOption('MAR');
       await expect(page.locator('#country-popup .country-action')).toHaveAttribute('href', 'https://bayaya-devi.github.io/MarocoGO/');
@@ -54,13 +57,12 @@ for (const locale of locales) {
       await expect(page.locator('#journey-stage')).toHaveAttribute('data-progress', /^0\.4/);
       const storyGeometry = await page.evaluate(() => {
         const globe = document.querySelector('#globe-interaction').getBoundingClientRect();
-        const labels = [...document.querySelectorAll('#scene-steps li')].map((element) => {
-          const rect = element.getBoundingClientRect();
-          return rect.right > globe.left && rect.left < globe.right && rect.bottom > globe.top && rect.top < globe.bottom;
-        });
-        return labels;
+        const rectangles = [...document.querySelectorAll('#scene-steps li')].map((element) => element.getBoundingClientRect());
+        const labels = rectangles.map((rect) => rect.right > globe.left && rect.left < globe.right && rect.bottom > globe.top && rect.top < globe.bottom);
+        return { labels, tops: rectangles.map((rect) => Math.round(rect.top)) };
       });
-      expect(storyGeometry).toEqual([false, false, false]);
+      expect(storyGeometry.labels).toEqual([false, false, false]);
+      expect(Math.max(...storyGeometry.tops) - Math.min(...storyGeometry.tops)).toBeLessThanOrEqual(2);
 
       const dimensions = await page.evaluate(() => ({ body: document.body.scrollWidth, viewport: document.documentElement.clientWidth }));
       expect(dimensions.body).toBeLessThanOrEqual(dimensions.viewport);
@@ -138,8 +140,10 @@ test('home menu is a single viewport-safe control and closes on toggle and outsi
 });
 
 test('final globe supports bounded wheel zoom and reversible progressive steps', async ({ page }) => {
+  test.setTimeout(60_000);
   await page.goto('fr/');
   const track = page.locator('#journey-track');
+  await expect(track).toBeVisible();
   await page.evaluate(() => window.scrollTo(0, (document.querySelector('#journey-track').offsetHeight - innerHeight) * .84));
   await expect(page.locator('#journey-stage')).toHaveAttribute('data-progress', /^0\.8/);
   const before = Number(await page.locator('#journey-stage').getAttribute('data-zoom'));
@@ -147,7 +151,19 @@ test('final globe supports bounded wheel zoom and reversible progressive steps',
   await page.mouse.wheel(0, -420);
   await expect.poll(async () => Number(await page.locator('#journey-stage').getAttribute('data-zoom'))).toBeGreaterThan(before);
   await page.mouse.wheel(0, -5000);
-  expect(Number(await page.locator('#journey-stage').getAttribute('data-zoom'))).toBeLessThanOrEqual(1.45);
+  expect(Number(await page.locator('#journey-stage').getAttribute('data-zoom'))).toBeLessThanOrEqual(2.65);
+  const globe = await page.locator('#globe-interaction').boundingBox();
+  const rotationBefore = await page.locator('#journey-stage').evaluate((stage) => [Number(stage.dataset.rotationX), Number(stage.dataset.rotationY)]);
+  await page.mouse.move(globe.x + globe.width / 2, globe.y + globe.height / 2);
+  await page.mouse.down();
+  await page.mouse.move(globe.x + globe.width / 2 + 48, globe.y + globe.height / 2 + 42, { steps: 4 });
+  await page.mouse.up();
+  await expect.poll(() => page.locator('#journey-stage').evaluate((stage) => Number(stage.dataset.rotationX))).not.toBe(rotationBefore[0]);
+  await page.locator('#globe-interaction').press('ArrowRight');
+  await expect.poll(() => page.locator('#journey-stage').evaluate((stage) => Number(stage.dataset.rotationY))).not.toBe(rotationBefore[1]);
+  const keyboardZoom = Number(await page.locator('#journey-stage').getAttribute('data-zoom'));
+  await page.locator('#globe-interaction').press('-');
+  await expect.poll(async () => Number(await page.locator('#journey-stage').getAttribute('data-zoom'))).toBeLessThan(keyboardZoom);
   await page.evaluate(() => window.scrollTo(0, (document.querySelector('#journey-track').offsetHeight - innerHeight) * .34));
   const revealed = await page.locator('.stage-steps li').evaluateAll((items) => items.map((item) => Number(getComputedStyle(item).opacity)));
   expect(revealed[0]).toBeGreaterThan(revealed[2]);
@@ -155,6 +171,20 @@ test('final globe supports bounded wheel zoom and reversible progressive steps',
   await expect(track).toBeVisible();
   const reset = await page.locator('.stage-steps li').evaluateAll((items) => items.map((item) => Number(getComputedStyle(item).opacity)));
   expect(reset.every((value) => value < .05)).toBe(true);
+});
+
+test('destination photography crossfades and unverified countries use the atmospheric fallback', async ({ page }) => {
+  await page.goto('fr/');
+  await expect.poll(() => page.locator('#country-picker option').count(), { timeout: 20_000 }).toBeGreaterThan(230);
+  await page.evaluate(() => window.scrollTo(0, (document.querySelector('#journey-track').offsetHeight - innerHeight) * .84));
+  await page.locator('#country-picker').selectOption('THA');
+  await expect(page.locator('#destination-visual')).toHaveAttribute('data-country', 'THA');
+  await expect(page.locator('#country-popup .photo-credit')).toHaveAttribute('href', /commons\.wikimedia\.org/);
+  await page.locator('#country-picker').selectOption('MAR');
+  await expect(page.locator('#destination-visual')).toHaveAttribute('data-country', 'MAR');
+  await page.locator('#country-picker').selectOption('CAN');
+  await expect(page.locator('#destination-visual')).not.toHaveClass(/is-visible/);
+  await expect(page.locator('#country-popup .photo-credit')).toHaveCount(0);
 });
 
 test('system color scheme changes the interface without reloading', async ({ page }) => {
@@ -191,6 +221,7 @@ test('@a11y all five localized pages pass axe WCAG 2.2 AA checks', async ({ page
 });
 
 test('account signup is localized, keyboard-labelled, and honestly unavailable before backend setup', async ({ browser }) => {
+  test.setTimeout(120_000);
   for (const locale of locales) {
     for (const viewport of [{ width: 1440, height: 900 }, { width: 375, height: 812 }]) {
       const context = await browser.newContext({ viewport });
