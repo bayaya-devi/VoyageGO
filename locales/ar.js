@@ -26,7 +26,7 @@ export default {
     { title: 'استكشف', text: 'تعرّف إلى أماكن وأشخاص وثقافات جديدة.' },
   ],
   stepLabel: 'ثلاث محطات في الرحلة',
-  login: 'تسجيل الدخول', signup: 'إنشاء حساب', accountNavigation: 'التنقّل في الحساب', accountLabel: 'حسابي', accountTitle: 'مساحتك في VoyageGo', accountDescription: 'سجّل الدخول للوصول إلى حساب VoyageGo.', loginUnavailable: 'حساب VoyageGo غير متاح بعد.',
+  login: 'تسجيل الدخول', signup: 'إنشاء حساب', signOut: 'تسجيل الخروج', accountNavigation: 'التنقّل في الحساب', accountLabel: 'ملفي الشخصي', accountTitle: 'مساحتك في VoyageGo', accountDescription: 'سجّل الدخول للوصول إلى حساب VoyageGo.', loginUnavailable: 'حساب VoyageGo غير متاح بعد.',
   language: 'اللغة', chooseLanguage: 'اختر لغة', menu: 'التنقل الرئيسي', top: 'العودة إلى الأعلى',
   skip: 'انتقل إلى المحتوى الرئيسي', notFound: 'تعذّر العثور على هذه الصفحة.',
   footerLabel: 'معلومات وروابط مفيدة', footerLead: '',

@@ -83,7 +83,8 @@ test('manual language preference overrides browser locale and survives routing',
   const page = await context.newPage();
   await page.goto('./');
   await expect(page).toHaveURL(/\/VoyageGO\/fr\/$/);
-  await page.locator('#language-trigger').click();
+  await page.locator('#home-menu-trigger').click();
+  await page.locator('#home-language-trigger').click();
   await page.getByRole('button', { name: 'Español' }).click();
   await expect(page).toHaveURL(/\/VoyageGO\/es\/$/);
   await expect(page.locator('html')).toHaveAttribute('lang', 'es');
@@ -103,12 +104,57 @@ test('browser language is detected for all supported languages and unsupported l
 
 test('language menu supports keyboard dismissal and exposes all five locales', async ({ page }) => {
   await page.goto('fr/');
-  const trigger = page.getByRole('button', { name: 'Choisir une langue' });
+  const trigger = page.getByRole('button', { name: 'Navigation principale' });
   await trigger.click();
+  await expect(page.locator('#home-menu-primary')).toContainText('Connexion');
+  await expect(page.locator('#home-menu-primary')).toContainText('Inscription');
+  await page.locator('#home-language-trigger').click();
   await expect(page.getByRole('button', { name: 'Español' })).toBeVisible();
   await page.keyboard.press('Escape');
-  await expect(page.locator('#language-menu')).toBeHidden();
+  await expect(page.locator('#home-menu-panel')).toBeHidden();
   await expect(trigger).toHaveAttribute('aria-expanded', 'false');
+});
+
+test('home menu is a single viewport-safe control and closes on toggle and outside click', async ({ page }) => {
+  await page.setViewportSize({ width: 320, height: 640 });
+  await page.goto('fr/');
+  await expect(page.locator('.floating-controls > *')).toHaveCount(1);
+  const trigger = page.locator('#home-menu-trigger');
+  await expect(trigger.locator('span')).toHaveCount(3);
+  await trigger.click();
+  const geometry = await page.locator('#home-menu-panel').evaluate((element) => {
+    const rect = element.getBoundingClientRect();
+    return { left: rect.left, right: rect.right, top: rect.top, bottom: rect.bottom, width: innerWidth, height: innerHeight };
+  });
+  expect(geometry.left).toBeGreaterThanOrEqual(0);
+  expect(geometry.right).toBeLessThanOrEqual(geometry.width);
+  expect(geometry.top).toBeGreaterThanOrEqual(0);
+  expect(geometry.bottom).toBeLessThanOrEqual(geometry.height);
+  await trigger.click();
+  await expect(page.locator('#home-menu-panel')).toBeHidden();
+  await trigger.click();
+  await page.locator('#journey-stage').click({ position: { x: 20, y: 20 }, force: true });
+  await expect(page.locator('#home-menu-panel')).toBeHidden();
+});
+
+test('final globe supports bounded wheel zoom and reversible progressive steps', async ({ page }) => {
+  await page.goto('fr/');
+  const track = page.locator('#journey-track');
+  await page.evaluate(() => window.scrollTo(0, (document.querySelector('#journey-track').offsetHeight - innerHeight) * .84));
+  await expect(page.locator('#journey-stage')).toHaveAttribute('data-progress', /^0\.8/);
+  const before = Number(await page.locator('#journey-stage').getAttribute('data-zoom'));
+  await page.locator('#globe-interaction').hover({ force: true });
+  await page.mouse.wheel(0, -420);
+  await expect.poll(async () => Number(await page.locator('#journey-stage').getAttribute('data-zoom'))).toBeGreaterThan(before);
+  await page.mouse.wheel(0, -5000);
+  expect(Number(await page.locator('#journey-stage').getAttribute('data-zoom'))).toBeLessThanOrEqual(1.45);
+  await page.evaluate(() => window.scrollTo(0, (document.querySelector('#journey-track').offsetHeight - innerHeight) * .34));
+  const revealed = await page.locator('.stage-steps li').evaluateAll((items) => items.map((item) => Number(getComputedStyle(item).opacity)));
+  expect(revealed[0]).toBeGreaterThan(revealed[2]);
+  await page.evaluate(() => window.scrollTo(0, 0));
+  await expect(track).toBeVisible();
+  const reset = await page.locator('.stage-steps li').evaluateAll((items) => items.map((item) => Number(getComputedStyle(item).opacity)));
+  expect(reset.every((value) => value < .05)).toBe(true);
 });
 
 test('system color scheme changes the interface without reloading', async ({ page }) => {

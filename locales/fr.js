@@ -26,7 +26,7 @@ export default {
     { title: 'Explorer', text: 'Partez à la rencontre de nouvelles cultures.' },
   ],
   stepLabel: 'Les trois temps du voyage',
-  login: 'Connexion', signup: 'Inscription', accountNavigation: 'Navigation du compte', accountLabel: 'Mon compte', accountTitle: 'Votre espace VoyageGo', accountDescription: 'Connectez-vous pour accéder à votre espace VoyageGo.', loginUnavailable: 'Le compte VoyageGo n’est pas encore disponible.',
+  login: 'Connexion', signup: 'Inscription', signOut: 'Déconnexion', accountNavigation: 'Navigation du compte', accountLabel: 'Mon profil', accountTitle: 'Votre espace VoyageGo', accountDescription: 'Connectez-vous pour accéder à votre espace VoyageGo.', loginUnavailable: 'Le compte VoyageGo n’est pas encore disponible.',
   language: 'Langue', chooseLanguage: 'Choisir une langue', menu: 'Navigation principale', top: 'Retour en haut',
   skip: 'Aller au contenu principal', notFound: 'Cette page est introuvable.',
   footerLabel: 'Informations et liens utiles', footerLead: '',

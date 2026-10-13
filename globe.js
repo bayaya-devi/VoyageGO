@@ -248,6 +248,9 @@ export async function mountGlobe(copy) {
   let progress = 0;
   let dragX = 0;
   let dragY = 0;
+  let zoom = 1;
+  const activePointers = new Map();
+  let pinchDistance = null;
   const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
   globe.rotation.set(-0.04, 0, 0);
 
@@ -274,15 +277,19 @@ export async function mountGlobe(copy) {
     const logoGlobeX = .5 + (.186 - .5) * logoWidth / window.innerWidth;
     return {
       logo: pose(logoGlobeX, .5, logoWidth * .233 / window.innerHeight),
-      story: pose(.5, small ? .45 : .48, small ? .38 : .48),
-      map: pose(small ? (document.documentElement.dir === 'rtl' ? .31 : .69) : (document.documentElement.dir === 'rtl' ? .28 : .72), small ? .34 : .49, small ? .33 : .43),
+      story: pose(.5, small ? .39 : .43, small ? .56 : .64),
+      map: pose(small ? .5 : (document.documentElement.dir === 'rtl' ? .32 : .68), small ? .29 : .49, small ? .58 : .69),
     };
   };
   const updateScrollTarget = () => {
     const range = Math.max(1, track.offsetHeight - window.innerHeight);
     progress = THREE.MathUtils.clamp((window.scrollY - track.offsetTop) / range, 0, 1);
     stage.dataset.progress = progress.toFixed(3);
+    stage.dataset.zoom = zoom.toFixed(2);
     stage.style.setProperty('--journey-progress', progress.toFixed(4));
+    stage.style.setProperty('--step-one', THREE.MathUtils.clamp((progress - .16) / .12, 0, 1).toFixed(3));
+    stage.style.setProperty('--step-two', THREE.MathUtils.clamp((progress - .28) / .12, 0, 1).toFixed(3));
+    stage.style.setProperty('--step-three', THREE.MathUtils.clamp((progress - .40) / .12, 0, 1).toFixed(3));
     const selecting = progress >= .76;
     document.body.classList.toggle('map-active', selecting);
     mapSection.setAttribute('aria-hidden', String(!selecting));
@@ -319,13 +326,28 @@ export async function mountGlobe(copy) {
   };
   const onPointerDown = (event) => {
     if (progress < .76) return;
+    activePointers.set(event.pointerId, { x: event.clientX, y: event.clientY });
     pointerDown = { x: event.clientX, y: event.clientY, lastX: event.clientX, lastY: event.clientY };
     dragged = false;
     interaction.setPointerCapture(event.pointerId);
+    if (activePointers.size === 2) {
+      const [a, b] = [...activePointers.values()];
+      pinchDistance = Math.hypot(a.x - b.x, a.y - b.y);
+    }
   };
   const onPointerMove = (event) => {
     if (!pointerDown || (event.pointerType === 'mouse' && !event.buttons)) {
       if (event.pointerType === 'mouse' && progress >= .76 && progress < .995) interaction.classList.toggle('is-pointing-at-country', Boolean(pickFeature(event)));
+      return;
+    }
+    if (activePointers.has(event.pointerId)) activePointers.set(event.pointerId, { x: event.clientX, y: event.clientY });
+    if (activePointers.size === 2) {
+      const [a, b] = [...activePointers.values()];
+      const distance = Math.hypot(a.x - b.x, a.y - b.y);
+      if (pinchDistance) zoom = THREE.MathUtils.clamp(zoom * distance / pinchDistance, .72, 1.45);
+      pinchDistance = distance;
+      stage.dataset.zoom = zoom.toFixed(2);
+      dragged = true;
       return;
     }
     const dx = event.clientX - pointerDown.lastX;
@@ -340,13 +362,22 @@ export async function mountGlobe(copy) {
       const feature = pickFeature(event);
       if (feature) setCountry(feature);
     }
+    activePointers.delete(event.pointerId);
+    if (activePointers.size < 2) pinchDistance = null;
     pointerDown = null;
   };
-  const onPointerCancel = () => { pointerDown = null; };
+  const onPointerCancel = (event) => { activePointers.delete(event.pointerId); pinchDistance = null; pointerDown = null; };
+  const onWheel = (event) => {
+    if (progress < .76) return;
+    event.preventDefault();
+    zoom = THREE.MathUtils.clamp(zoom * Math.exp(-event.deltaY * .0012), .72, 1.45);
+    stage.dataset.zoom = zoom.toFixed(2);
+  };
   interaction.addEventListener('pointerdown', onPointerDown);
   interaction.addEventListener('pointermove', onPointerMove);
   interaction.addEventListener('pointerup', onPointerUp);
   interaction.addEventListener('pointercancel', onPointerCancel);
+  interaction.addEventListener('wheel', onWheel, { passive: false });
   window.addEventListener('resize', resize, { passive: true });
   window.addEventListener('scroll', onScroll, { passive: true });
   resize();
@@ -370,7 +401,8 @@ export async function mountGlobe(copy) {
     const easing = reducedMotion.matches ? 1 : 1 - Math.exp(-12 * elapsed);
     globe.position.x += (target.x - globe.position.x) * easing;
     globe.position.y += (target.y - globe.position.y) * easing;
-    globe.scale.setScalar(globe.scale.x + (target.scale - globe.scale.x) * easing);
+    const zoomedScale = target.scale * (progress >= .76 ? zoom : 1);
+    globe.scale.setScalar(globe.scale.x + (zoomedScale - globe.scale.x) * easing);
     globe.rotation.y += (progress * 1.15 + dragX - globe.rotation.y) * (pointerDown ? 1 : easing);
     globe.rotation.x += ((-.04 + dragY - globe.rotation.x) * (pointerDown ? 1 : easing));
     placeInteraction();
@@ -414,6 +446,7 @@ export async function mountGlobe(copy) {
     interaction.removeEventListener('pointermove', onPointerMove);
     interaction.removeEventListener('pointerup', onPointerUp);
     interaction.removeEventListener('pointercancel', onPointerCancel);
+    interaction.removeEventListener('wheel', onWheel);
     document.body.classList.remove('map-active');
   };
 }

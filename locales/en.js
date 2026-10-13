@@ -26,7 +26,7 @@ export default {
     { title: 'Explore', text: 'Meet new places, people and cultures.' },
   ],
   stepLabel: 'Three moments of a journey',
-  login: 'Sign in', signup: 'Sign up', accountNavigation: 'Account navigation', accountLabel: 'My account', accountTitle: 'Your VoyageGo space', accountDescription: 'Sign in to access your VoyageGo account.', loginUnavailable: 'A VoyageGo account is not available yet.',
+  login: 'Sign in', signup: 'Sign up', signOut: 'Sign out', accountNavigation: 'Account navigation', accountLabel: 'My profile', accountTitle: 'Your VoyageGo space', accountDescription: 'Sign in to access your VoyageGo account.', loginUnavailable: 'A VoyageGo account is not available yet.',
   language: 'Language', chooseLanguage: 'Choose a language', menu: 'Main navigation', top: 'Back to top',
   skip: 'Skip to main content', notFound: 'This page could not be found.',
   footerLabel: 'Information and useful links', footerLead: '',

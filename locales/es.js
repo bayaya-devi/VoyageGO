@@ -24,7 +24,7 @@ export default {
     { title: 'Explorar', text: 'Conoce nuevos lugares y culturas.' },
   ],
   stepLabel: 'Tres momentos del viaje',
-  login: 'Iniciar sesión', signup: 'Crear cuenta', accountNavigation: 'Navegación de la cuenta', accountLabel: 'Mi cuenta', accountTitle: 'Tu espacio VoyageGo', accountDescription: 'Inicia sesión para acceder a tu cuenta VoyageGo.', loginUnavailable: 'La cuenta de VoyageGo todavía no está disponible.',
+  login: 'Iniciar sesión', signup: 'Crear cuenta', signOut: 'Cerrar sesión', accountNavigation: 'Navegación de la cuenta', accountLabel: 'Mi perfil', accountTitle: 'Tu espacio VoyageGo', accountDescription: 'Inicia sesión para acceder a tu cuenta VoyageGo.', loginUnavailable: 'La cuenta de VoyageGo todavía no está disponible.',
   language: 'Idioma', chooseLanguage: 'Elige un idioma', menu: 'Navegación principal', top: 'Volver arriba',
   skip: 'Ir al contenido principal', notFound: 'No se encontró esta página.',
   footerLabel: 'Información y enlaces útiles', footerLead: '',

@@ -73,6 +73,23 @@ function languageControl(copy) {
     <div id="language-menu" class="language-menu" hidden><p>${escapeHtml(copy.chooseLanguage)}</p><ul>${menuItems(copy)}</ul></div></div>`;
 }
 
+function homeMenu(copy) {
+  return `<div class="home-menu" id="home-menu">
+    <div class="home-menu-panel" id="home-menu-panel" aria-label="${escapeHtml(copy.menu)}" hidden>
+      <div class="home-menu-primary" id="home-menu-primary">
+        <a href="${escapeHtml(accountUrl(copy.lang, 'login'))}" data-home-login>${escapeHtml(copy.login)}</a>
+        <a href="${escapeHtml(accountUrl(copy.lang, 'signup'))}" data-home-signup>${escapeHtml(copy.signup)}</a>
+        <button type="button" id="home-language-trigger" aria-expanded="false" aria-controls="home-language-menu"><span>${escapeHtml(copy.language)}</span><span aria-hidden="true">›</span></button>
+      </div>
+      <div class="home-language-menu" id="home-language-menu" aria-label="${escapeHtml(copy.chooseLanguage)}" hidden>
+        <button class="home-menu-back" type="button" id="home-language-back"><span aria-hidden="true">‹</span><span>${escapeHtml(copy.chooseLanguage)}</span></button>
+        <ul>${menuItems(copy)}</ul>
+      </div>
+    </div>
+    <button class="home-menu-trigger" id="home-menu-trigger" type="button" aria-label="${escapeHtml(copy.menu)}" aria-expanded="false" aria-controls="home-menu-panel"><span></span><span></span><span></span></button>
+  </div>`;
+}
+
 function header(copy, page = null) {
   const isAccountEntry = page?.type === 'account' && ['login', 'signup'].includes(page.view);
   const accountActions = isAccountEntry
@@ -120,7 +137,7 @@ function homeContent(copy) {
         </section>
       </div>
     </div>
-    <div class="floating-controls"><a class="profile-trigger floating-profile" data-profile-link href="${escapeHtml(accountUrl(copy.lang, 'login'))}" aria-label="${escapeHtml(copy.login)}" title="${escapeHtml(copy.login)}">${icon('user')}</a>${languageControl(copy)}</div>
+    <div class="floating-controls">${homeMenu(copy)}</div>
     <div class="notice" id="notice" role="status" aria-live="polite" hidden><span id="notice-text"></span><button id="notice-close" type="button">${escapeHtml(copy.close)}</button></div>
   </main>`;
 }
@@ -209,6 +226,47 @@ function bind(copy, page) {
       trigger?.focus();
     }
   }));
+
+  const homeMenuRoot = document.querySelector('#home-menu');
+  const homeMenuTrigger = document.querySelector('#home-menu-trigger');
+  const homeMenuPanel = document.querySelector('#home-menu-panel');
+  const homeLanguageTrigger = document.querySelector('#home-language-trigger');
+  const homeLanguageMenu = document.querySelector('#home-language-menu');
+  const homeMenuPrimary = document.querySelector('#home-menu-primary');
+  const closeHomeMenu = ({ restoreFocus = false } = {}) => {
+    if (!homeMenuPanel || !homeMenuTrigger) return;
+    homeMenuPanel.hidden = true;
+    homeLanguageMenu.hidden = true;
+    homeMenuPrimary.hidden = false;
+    homeMenuTrigger.setAttribute('aria-expanded', 'false');
+    homeLanguageTrigger?.setAttribute('aria-expanded', 'false');
+    if (restoreFocus) homeMenuTrigger.focus();
+  };
+  homeMenuTrigger?.addEventListener('click', () => {
+    const opening = homeMenuPanel.hidden;
+    if (!opening) { closeHomeMenu(); return; }
+    homeMenuPanel.hidden = false;
+    homeMenuTrigger.setAttribute('aria-expanded', 'true');
+    homeMenuPanel.querySelector('a, button')?.focus();
+  });
+  homeLanguageTrigger?.addEventListener('click', () => {
+    homeMenuPrimary.hidden = true;
+    homeLanguageMenu.hidden = false;
+    homeLanguageTrigger.setAttribute('aria-expanded', 'true');
+    homeLanguageMenu.querySelector('[data-language]')?.focus();
+  });
+  document.querySelector('#home-language-back')?.addEventListener('click', () => {
+    homeLanguageMenu.hidden = true;
+    homeMenuPrimary.hidden = false;
+    homeLanguageTrigger.setAttribute('aria-expanded', 'false');
+    homeLanguageTrigger.focus();
+  });
+  document.addEventListener('pointerdown', (event) => {
+    if (homeMenuPanel && !homeMenuPanel.hidden && !homeMenuRoot.contains(event.target)) closeHomeMenu();
+  });
+  document.addEventListener('keydown', (event) => {
+    if (event.key === 'Escape' && homeMenuPanel && !homeMenuPanel.hidden) closeHomeMenu({ restoreFocus: true });
+  });
   document.querySelectorAll('[data-legal]').forEach((link) => link.addEventListener('click', (event) => {
     event.preventDefault();
     const next = new URL(link.href);
@@ -266,7 +324,20 @@ async function render() {
   app.innerHTML = page?.type === 'legal' ? `${header(copy, page)}${legalContent(copy, page.docId)}` : homeContent(copy);
   bind(copy, page);
   if (!page) {
-    import('./auth/account-ui.js').then(({ updateProfileBadge }) => updateProfileBadge(copy)).catch(() => {});
+    Promise.all([import('./auth/account-ui.js'), import('./auth/client.js')]).then(async ([{ updateProfileBadge }, { readSession, signOut }]) => {
+      updateProfileBadge(copy);
+      const { session } = await readSession();
+      if (!session?.user) return;
+      const primary = document.querySelector('#home-menu-primary');
+      if (!primary) return;
+      primary.querySelector('[data-home-login]')?.remove();
+      primary.querySelector('[data-home-signup]')?.remove();
+      primary.insertAdjacentHTML('afterbegin', `<a href="${escapeHtml(accountUrl(copy.lang, 'profile'))}">${escapeHtml(copy.accountLabel)}</a><button type="button" data-home-signout>${escapeHtml(copy.signOut)}</button>`);
+      primary.querySelector('[data-home-signout]')?.addEventListener('click', async () => {
+        await signOut();
+        location.reload();
+      });
+    }).catch(() => {});
     import('./globe.js').then(({ mountGlobe }) => mountGlobe(copy)).then((cleanup) => { cleanupGlobe = cleanup; }).catch(() => {
       const status = document.querySelector('#globe-status');
       if (status) status.textContent = copy.mapUnavailable;
