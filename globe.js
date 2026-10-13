@@ -266,14 +266,24 @@ export async function mountGlobe(copy) {
   const pose = (x, y, diameter) => ({
     x: (x - .5) * camera.position.z * 2 * Math.tan(37 * radians / 2) * window.innerWidth / window.innerHeight,
     y: (.5 - y) * camera.position.z * 2 * Math.tan(37 * radians / 2),
-    scale: diameter * Math.tan(37 * radians / 2) * camera.position.z,
+    scale: diameter * .5 * Math.tan(37 * radians / 2) * camera.position.z,
   });
+  const scenePoses = () => {
+    const small = window.innerWidth < 700;
+    const logoWidth = Math.min(window.innerWidth * (small ? .9 : .86), small ? 520 : 860, window.innerHeight * (small ? 1.05 : 1.5));
+    const logoGlobeX = .5 + (.186 - .5) * logoWidth / window.innerWidth;
+    return {
+      logo: pose(logoGlobeX, .5, logoWidth * .233 / window.innerHeight),
+      story: pose(.5, small ? .45 : .48, small ? .38 : .48),
+      map: pose(small ? (document.documentElement.dir === 'rtl' ? .31 : .69) : (document.documentElement.dir === 'rtl' ? .28 : .72), small ? .34 : .49, small ? .33 : .43),
+    };
+  };
   const updateScrollTarget = () => {
     const range = Math.max(1, track.offsetHeight - window.innerHeight);
     progress = THREE.MathUtils.clamp((window.scrollY - track.offsetTop) / range, 0, 1);
     stage.dataset.progress = progress.toFixed(3);
     stage.style.setProperty('--journey-progress', progress.toFixed(4));
-    const selecting = progress >= .76 && progress < .995;
+    const selecting = progress >= .76;
     document.body.classList.toggle('map-active', selecting);
     mapSection.setAttribute('aria-hidden', String(!selecting));
     if (selecting) mapSection.removeAttribute('inert'); else mapSection.setAttribute('inert', '');
@@ -308,7 +318,7 @@ export async function mountGlobe(copy) {
     requestAnimationFrame(() => { updateScrollTarget(); scrollScheduled = false; });
   };
   const onPointerDown = (event) => {
-    if (progress < .76 || progress >= .995) return;
+    if (progress < .76) return;
     pointerDown = { x: event.clientX, y: event.clientY, lastX: event.clientX, lastY: event.clientY };
     dragged = false;
     interaction.setPointerCapture(event.pointerId);
@@ -344,25 +354,24 @@ export async function mountGlobe(copy) {
   visibilityObserver.observe(stage);
   const onVisibilityChange = () => { active = !document.hidden; };
   document.addEventListener('visibilitychange', onVisibilityChange);
+  const initialPose = scenePoses().logo;
+  globe.position.set(initialPose.x, initialPose.y, 0);
+  globe.scale.setScalar(initialPose.scale);
 
   renderer.setAnimationLoop((time) => {
     if (!active || time - lastFrame < 32) return;
+    const elapsed = lastFrame ? Math.min((time - lastFrame) / 1000, .08) : 1 / 30;
     lastFrame = time;
-    const small = window.innerWidth < 700;
-    const initialWidth = Math.min(window.innerWidth * .86, 860);
-    const logoX = .5 + (1086 * .194 - 1086 * .5) * initialWidth / 1086 / window.innerWidth;
-    const p0 = pose(logoX, .5, Math.min(initialWidth * .22 / window.innerHeight, .24));
-    const p1 = pose(.5, small ? .45 : .48, small ? .42 : .54);
-    const p2 = pose(small ? (document.documentElement.dir === 'rtl' ? .31 : .69) : (document.documentElement.dir === 'rtl' ? .28 : .72), small ? .34 : .49, small ? .34 : .43);
+    const { logo: p0, story: p1, map: p2 } = scenePoses();
     const blend = (a, b, t) => ({ x: THREE.MathUtils.lerp(a.x, b.x, t), y: THREE.MathUtils.lerp(a.y, b.y, t), scale: THREE.MathUtils.lerp(a.scale, b.scale, t) });
     const t1 = THREE.MathUtils.clamp(progress / .25, 0, 1);
     const t2 = THREE.MathUtils.clamp((progress - .58) / .23, 0, 1);
     const target = blend(blend(p0, p1, t1), p2, t2);
-    const easing = reducedMotion.matches ? 1 : .08;
+    const easing = reducedMotion.matches ? 1 : 1 - Math.exp(-12 * elapsed);
     globe.position.x += (target.x - globe.position.x) * easing;
     globe.position.y += (target.y - globe.position.y) * easing;
     globe.scale.setScalar(globe.scale.x + (target.scale - globe.scale.x) * easing);
-    globe.rotation.y += ((progress < .2 ? 0 : progress < .65 ? .35 : -.22) + dragX - globe.rotation.y) * (pointerDown ? 1 : easing);
+    globe.rotation.y += (progress * 1.15 + dragX - globe.rotation.y) * (pointerDown ? 1 : easing);
     globe.rotation.x += ((-.04 + dragY - globe.rotation.x) * (pointerDown ? 1 : easing));
     placeInteraction();
     renderer.render(scene, camera);

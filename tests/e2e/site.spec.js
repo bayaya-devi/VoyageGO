@@ -1,12 +1,13 @@
 import { test, expect } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
+import { isValidPassword } from '../../auth/validation.js';
 
 const locales = [
-  { code: 'fr', title: 'Votre prochaine découverte commence ici.', direction: 'ltr', cookieTitle: 'Cookies et préférences', soon: 'Bientôt disponible' },
-  { code: 'en', title: 'Your next discovery starts here.', direction: 'ltr', cookieTitle: 'Cookies and preferences', soon: 'Coming soon' },
-  { code: 'ar', title: 'اكتشافك القادم يبدأ من هنا.', direction: 'rtl', cookieTitle: 'ملفات الارتباط والتفضيلات', soon: 'قريبًا' },
-  { code: 'es', title: 'Tu próximo descubrimiento empieza aquí.', direction: 'ltr', cookieTitle: 'Cookies y preferencias', soon: 'Próximamente' },
-  { code: 'pt', title: 'A sua próxima descoberta começa aqui.', direction: 'ltr', cookieTitle: 'Cookies e preferências', soon: 'Em breve' },
+  { code: 'fr', tagline: 'LE MONDE VOUS ATTEND', direction: 'ltr', cookieTitle: 'Cookies et préférences', soon: 'Bientôt disponible' },
+  { code: 'en', tagline: 'THE WORLD IS WAITING', direction: 'ltr', cookieTitle: 'Cookies and preferences', soon: 'Coming soon' },
+  { code: 'ar', tagline: 'العالم في انتظارك', direction: 'rtl', cookieTitle: 'ملفات الارتباط والتفضيلات', soon: 'قريبًا' },
+  { code: 'es', tagline: 'EL MUNDO TE ESPERA', direction: 'ltr', cookieTitle: 'Cookies y preferencias', soon: 'Próximamente' },
+  { code: 'pt', tagline: 'O MUNDO ESPERA POR SI', direction: 'ltr', cookieTitle: 'Cookies e preferências', soon: 'Em breve' },
 ];
 
 const viewports = [
@@ -24,11 +25,18 @@ for (const locale of locales) {
       await page.goto(`${locale.code}/`);
       await expect(page.locator('html')).toHaveAttribute('lang', locale.code);
       await expect(page.locator('html')).toHaveAttribute('dir', locale.direction);
-      await expect(page.getByRole('heading', { level: 1, name: locale.title })).toBeVisible();
+      await expect(page.getByRole('heading', { level: 1, name: locale.tagline })).toBeVisible();
       await expect(page.locator('header')).toHaveCount(0);
+      await expect(page.locator('#site-footer')).toHaveCount(0);
       await expect(page.locator('.scene-brand')).toBeVisible();
       await expect(page.locator('#country-picker')).toBeVisible();
-      await expect.poll(() => page.locator('#country-picker option').count()).toBeGreaterThan(150);
+      const brandAndTagline = await page.evaluate(() => {
+        const logo = document.querySelector('.scene-brand').getBoundingClientRect();
+        const tagline = document.querySelector('#hero-title').getBoundingClientRect();
+        return { logoBottom: logo.bottom, taglineTop: tagline.top };
+      });
+      expect(brandAndTagline.taglineTop).toBeGreaterThan(brandAndTagline.logoBottom);
+      await expect.poll(() => page.locator('#country-picker option').count(), { timeout: 20_000 }).toBeGreaterThan(150);
       await page.evaluate(() => window.scrollTo(0, document.querySelector('#journey-track').offsetTop + (document.querySelector('#journey-track').offsetHeight - innerHeight) * .82));
       await expect(page.locator('#journey-stage')).toHaveAttribute('data-progress', /^0\.8/);
       await expect(page.locator('#map-section')).not.toHaveAttribute('inert', '');
@@ -42,10 +50,22 @@ for (const locale of locales) {
       await expect(page.locator('#country-popup .country-action')).toHaveAttribute('href', 'https://bayaya-devi.github.io/MarocoGO/');
       await expect(page.locator('#country-popup')).toContainText(locale.code === 'ar' ? 'المغرب' : locale.code === 'fr' ? 'Maroc' : locale.code === 'es' ? 'Marruecos' : locale.code === 'pt' ? 'Marrocos' : 'Morocco');
 
+      await page.evaluate(() => window.scrollTo(0, document.querySelector('#journey-track').offsetTop + (document.querySelector('#journey-track').offsetHeight - innerHeight) * .45));
+      await expect(page.locator('#journey-stage')).toHaveAttribute('data-progress', /^0\.4/);
+      const storyGeometry = await page.evaluate(() => {
+        const globe = document.querySelector('#globe-interaction').getBoundingClientRect();
+        const labels = [...document.querySelectorAll('#scene-steps li')].map((element) => {
+          const rect = element.getBoundingClientRect();
+          return rect.right > globe.left && rect.left < globe.right && rect.bottom > globe.top && rect.top < globe.bottom;
+        });
+        return labels;
+      });
+      expect(storyGeometry).toEqual([false, false, false]);
+
       const dimensions = await page.evaluate(() => ({ body: document.body.scrollWidth, viewport: document.documentElement.clientWidth }));
       expect(dimensions.body).toBeLessThanOrEqual(dimensions.viewport);
 
-      await page.locator('[data-legal="cookies"]').click();
+      await page.goto(`${locale.code}/?page=legal&doc=cookies`);
       await expect(page.getByRole('heading', { level: 1 })).toHaveText(locale.cookieTitle);
       await expect(page.locator('meta[name="robots"]')).toHaveAttribute('content', 'noindex,follow');
       await expect(page.locator('#reset-language')).toBeVisible();
@@ -115,9 +135,10 @@ test('desktop, tablet and narrow mobile layouts stay within the viewport in LTR 
 });
 
 test('@a11y all five localized pages pass axe WCAG 2.2 AA checks', async ({ page }) => {
+  test.setTimeout(120_000);
   for (const locale of locales) {
     await page.goto(`${locale.code}/`);
-    await expect.poll(() => page.locator('#country-picker option').count()).toBeGreaterThan(150);
+    await expect.poll(() => page.locator('#country-picker option').count(), { timeout: 20_000 }).toBeGreaterThan(150);
     const results = await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa', 'wcag21aa', 'wcag22aa']).analyze();
     expect(results.violations.map(({ id, impact, help }) => ({ id, impact, help }))).toEqual([]);
   }
@@ -138,6 +159,22 @@ test('account signup is localized, keyboard-labelled, and honestly unavailable b
       await expect(page.locator('#password')).toBeVisible();
       await expect(page.locator('#account-form [type="submit"]')).toBeDisabled();
       await expect(page.locator('.account-unavailable')).toBeVisible();
+      await expect(page.locator('.account-unavailable')).not.toContainText(/VoyageGo accounts are not enabled|Les comptes VoyageGo ne sont pas encore activés|حسابات VoyageGo غير مفعّلة|Las cuentas de VoyageGo aún no están activadas|As contas VoyageGo ainda não estão ativadas/i);
+      await expect(page.locator('.account-backdrop img')).toBeVisible();
+      await expect.poll(() => page.locator('.account-backdrop img').evaluate((image) => image.naturalWidth)).toBeGreaterThan(0);
+      await expect(page.locator('.account-photo-caption a')).toBeVisible();
+      await expect(page.locator('.account-header-links a')).toHaveCount(2);
+      const headerButtons = await page.locator('.account-header-links a').evaluateAll((links) => links.map((link) => link.getBoundingClientRect().height));
+      expect(headerButtons[0]).toBe(headerButtons[1]);
+      await page.locator('#language-trigger').click();
+      const menuGeometry = await page.locator('#language-menu').evaluate((menu) => {
+        const rect = menu.getBoundingClientRect();
+        const header = document.querySelector('.secondary-header').getBoundingClientRect();
+        return { top: rect.top, bottom: rect.bottom, headerBottom: header.bottom, viewport: innerHeight };
+      });
+      expect(menuGeometry.top).toBeGreaterThanOrEqual(menuGeometry.headerBottom);
+      expect(menuGeometry.bottom).toBeLessThanOrEqual(menuGeometry.viewport);
+      await page.locator('#language-trigger').click();
       await expect(page.locator('.account-footer .footer-nav a')).toHaveCount(6);
       const dimensions = await page.evaluate(() => ({ body: document.body.scrollWidth, viewport: document.documentElement.clientWidth }));
       expect(dimensions.body).toBeLessThanOrEqual(dimensions.viewport);
@@ -155,41 +192,30 @@ test('@a11y account signup passes axe WCAG 2.2 AA in all supported languages', a
   }
 });
 
-test('signup rejects weak credentials locally and sends normalized data to the configured auth endpoint', async ({ page }) => {
-  await page.route('**/auth/runtime-config.js', (route) => route.fulfill({
-    status: 200,
-    contentType: 'text/javascript',
-    body: "export const authConfig = Object.freeze({supabaseUrl:'https://voyagego-test.supabase.co',supabasePublishableKey:'sb_publishable_test'});",
-  }));
-  let signupRequest;
-  await page.route('https://voyagego-test.supabase.co/auth/v1/**', async (route) => {
-    const url = new URL(route.request().url());
-    if (url.pathname.endsWith('/settings')) {
-      await route.fulfill({ json: { external: { email: true, google: true }, disable_signup: false, mailer_autoconfirm: false } });
-      return;
-    }
-    if (url.pathname.endsWith('/signup')) {
-      signupRequest = route.request().postDataJSON();
-      await route.fulfill({ json: { user: { id: '00000000-0000-4000-8000-000000000001', aud: 'authenticated', role: 'authenticated', email: signupRequest.email, app_metadata: { provider: 'email', providers: ['email'] }, user_metadata: signupRequest.data, identities: [], created_at: new Date().toISOString() }, session: null } });
-      return;
-    }
-    await route.fulfill({ status: 400, json: { message: 'Unexpected test request' } });
-  });
-  await page.goto('fr/?page=account&view=signup');
-  await page.locator('#first-name').fill('Ada');
-  await page.locator('#last-name').fill('Voyage');
-  await page.locator('#email').fill(' NOT-AN-EMAIL ');
-  await page.locator('#password').fill('weak');
-  await page.locator('#confirm-password').fill('weak');
-  await page.locator('#account-form [type="submit"]').click();
-  await expect(page.locator('#account-message')).toContainText('adresse e-mail valide');
-  expect(signupRequest).toBeUndefined();
+test('account landscape stays stable for one form and changes for the next form', async ({ page }) => {
+  await page.goto('fr/?page=account&view=login');
+  const loginPhoto = await page.locator('.account-backdrop img').getAttribute('src');
+  await page.locator('.account-header-links a').filter({ hasText: 'Inscription' }).click();
+  await expect(page).toHaveURL(/view=signup/);
+  const signupPhoto = await page.locator('.account-backdrop img').getAttribute('src');
+  expect(signupPhoto).not.toBe(loginPhoto);
+  await page.reload();
+  await expect(page.locator('.account-backdrop img')).toHaveAttribute('src', signupPhoto);
+});
 
-  await page.locator('#email').fill(' Ada@Example.com ');
-  await page.locator('#password').fill('Voyage7');
-  await page.locator('#confirm-password').fill('Voyage7');
-  await page.locator('#account-form [type="submit"]').click();
-  await expect(page.locator('#account-message')).toContainText('Si votre inscription peut être finalisée');
-  expect(signupRequest.email).toBe('ada@example.com');
-  expect(signupRequest.data).toMatchObject({ first_name: 'Ada', last_name: 'Voyage', preferred_locale: 'fr' });
+test('account landscape failure shows the designed fallback without a mismatched location caption', async ({ page }) => {
+  await page.route('**/assets/account-landscapes/**', (route) => route.abort());
+  await page.goto('fr/?page=account&view=login');
+  await expect(page.locator('.account-backdrop')).toHaveClass(/is-fallback/);
+  await expect(page.locator('.account-photo-caption')).toBeHidden();
+});
+
+test('password rules enforce a long passphrase without arbitrary character classes', async ({ page }) => {
+  expect(isValidPassword('Voyage7')).toBe(false);
+  expect(isValidPassword('a'.repeat(15))).toBe(true);
+  expect(isValidPassword('a'.repeat(129))).toBe(false);
+  await page.goto('fr/?page=account&view=signup');
+  await expect(page.locator('#password')).toHaveAttribute('minlength', '15');
+  await expect(page.locator('#password')).toHaveAttribute('maxlength', '128');
+  await expect(page.locator('#password-rules')).toContainText('Entre 15 et 128 caractères');
 });

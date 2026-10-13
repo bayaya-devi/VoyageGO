@@ -4,8 +4,9 @@
   "version": "1.0.0",
   "type": "module",
   "scripts": {
-    "build:auth": "esbuild auth/supabase-entry.js --bundle --format=esm --minify --target=es2020 --outfile=vendor/supabase-auth.js",
-    "configure:auth": "node auth/configure.js",
+    "build": "node scripts/build.mjs",
+    "dev": "wrangler pages dev",
+    "deploy": "npm run build && wrangler pages deploy dist --project-name voyagego",
     "test:e2e": "playwright test",
     "test:a11y": "playwright test --grep @a11y"
   },
@@ -14,9 +15,13 @@
     "@playwright/test": "1.64.0",
     "axe-core": "4.13.0",
     "esbuild": "0.28.2",
-    "three": "0.186.1"
+    "three": "0.186.1",
+    "wrangler": "4.150.0"
   },
   "dependencies": {
-    "@supabase/supabase-js": "2.117.3"
+    "better-auth": "1.7.7"
+  },
+  "allowScripts": {
+    "workerd@1.20261006.1": true
   }
 }

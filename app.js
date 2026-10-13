@@ -73,11 +73,15 @@ function languageControl(copy) {
     <div id="language-menu" class="language-menu" hidden><p>${escapeHtml(copy.chooseLanguage)}</p><ul>${menuItems(copy)}</ul></div></div>`;
 }
 
-function header(copy) {
+function header(copy, page = null) {
+  const isAccountEntry = page?.type === 'account' && ['login', 'signup'].includes(page.view);
+  const accountActions = isAccountEntry
+    ? `<nav class="account-header-links" aria-label="${escapeHtml(copy.accountNavigation)}"><a class="header-auth-link ${page.view === 'login' ? 'is-current' : ''}" href="${escapeHtml(accountUrl(copy.lang, 'login', page.returnTo))}" ${page.view === 'login' ? 'aria-current="page"' : ''}>${escapeHtml(copy.login)}</a><a class="header-auth-link ${page.view === 'signup' ? 'is-current' : ''}" href="${escapeHtml(accountUrl(copy.lang, 'signup', page.returnTo))}" ${page.view === 'signup' ? 'aria-current="page"' : ''}>${escapeHtml(copy.signup)}</a></nav>`
+    : `<a class="profile-trigger header-profile" data-profile-link href="${escapeHtml(accountUrl(copy.lang, 'login'))}" aria-label="${escapeHtml(copy.login)}" title="${escapeHtml(copy.login)}">${icon('user')}<span>${escapeHtml(copy.login)}</span></a>`;
   return `<a class="skip-link" href="#main-content">${escapeHtml(copy.skip)}</a>
     <header class="secondary-header">
       <a class="brand" href="${escapeHtml(homeUrl(copy.lang))}" aria-label="VoyageGo — ${escapeHtml(copy.home)}"><img src="${new URL('voyagego-logo-2x.png', document.baseURI).href}" width="1086" height="362" alt="VoyageGo"></a>
-      <div class="header-actions"><a class="profile-trigger header-profile" data-profile-link href="${escapeHtml(accountUrl(copy.lang, 'login'))}" aria-label="${escapeHtml(copy.login)}" title="${escapeHtml(copy.login)}">${icon('user')}<span>${escapeHtml(copy.login)}</span></a>${languageControl(copy)}</div>
+      <div class="header-actions">${accountActions}${languageControl(copy)}</div>
     </header>`;
 }
 
@@ -96,7 +100,6 @@ function destinationOptions(copy) {
 
 function homeContent(copy) {
   const stepNames = copy.steps.map((step) => `<li><span>${escapeHtml(step.title)}</span><small>${escapeHtml(step.text)}</small></li>`).join('');
-  const legalLinks = copy.legal.map((link) => `<li><a href="${escapeHtml(legalUrl(copy.lang, link.id))}" data-legal="${link.id}">${escapeHtml(link.label)}</a></li>`).join('');
   return `<main id="main-content" tabindex="-1" class="immersive-page">
     <div class="journey-track" id="journey-track">
       <div class="journey-stage" id="journey-stage" data-progress="0">
@@ -105,10 +108,8 @@ function homeContent(copy) {
         <p id="globe-status" class="sr-only" role="status" aria-live="polite"></p>
         <p id="country-announcement" class="sr-only" role="status" aria-live="polite"></p>
         <img class="scene-brand" id="scene-brand" src="${new URL('voyagego-logo-2x.png', document.baseURI).href}" width="1086" height="362" alt="VoyageGo">
-        <div class="hero-copy" id="scene-welcome" aria-labelledby="hero-title">
-          <p class="hero-tagline">${escapeHtml(copy.tag)}</p><h1 id="hero-title">${escapeHtml(copy.title)}</h1>
-        </div>
-        <ol class="stage-steps" id="scene-steps" aria-label="${escapeHtml(copy.stepLabel)}" aria-hidden="true">${stepNames}</ol>
+        <div class="hero-copy" id="scene-welcome"><h1 class="hero-tagline" id="hero-title">${escapeHtml(copy.tag)}</h1></div>
+        <ol class="stage-steps" id="scene-steps" aria-label="${escapeHtml(copy.stepLabel)}">${stepNames}</ol>
         <section class="map-copy" id="map-section" aria-labelledby="map-title" aria-hidden="true" inert>
           <h2 id="map-title"><span class="map-title-emphasis">${escapeHtml(copy.mapTitleEmphasis)}</span> ${escapeHtml(copy.mapTitleRest)}</h2>
           <label class="country-picker-label" for="country-picker">${escapeHtml(copy.countrySelectLabel)}</label>
@@ -119,11 +120,6 @@ function homeContent(copy) {
         </section>
       </div>
     </div>
-    <footer class="site-footer" id="site-footer">
-      <div class="footer-main"><a class="footer-brand" href="${escapeHtml(homeUrl(copy.lang))}" aria-label="VoyageGo — ${escapeHtml(copy.home)}"><img src="${new URL('voyagego-logo-2x.png', document.baseURI).href}" width="1086" height="362" alt="VoyageGo"></a>
-        <nav class="footer-nav" aria-label="${escapeHtml(copy.footerLabel)}"><h2>${escapeHtml(copy.legalHeading)}</h2><ul>${legalLinks}</ul></nav>
-      </div><div class="footer-meta"><span>© ${new Date().getFullYear()} VoyageGo</span><button type="button" class="back-top" id="back-top" aria-label="${escapeHtml(copy.top)}" title="${escapeHtml(copy.top)}">${icon('up')}</button></div>
-    </footer>
     <div class="floating-controls"><a class="profile-trigger floating-profile" data-profile-link href="${escapeHtml(accountUrl(copy.lang, 'login'))}" aria-label="${escapeHtml(copy.login)}" title="${escapeHtml(copy.login)}">${icon('user')}</a>${languageControl(copy)}</div>
     <div class="notice" id="notice" role="status" aria-live="polite" hidden><span id="notice-text"></span><button id="notice-close" type="button">${escapeHtml(copy.close)}</button></div>
   </main>`;
@@ -259,7 +255,7 @@ async function render() {
   const page = currentPage();
   setMetadata(copy, page);
   if (page?.type === 'account') {
-    app.innerHTML = header(copy);
+    app.innerHTML = header(copy, page);
     bind(copy, page);
     const { renderAccount, updateProfileBadge } = await import('./auth/account-ui.js');
     cleanupAccount = await renderAccount(app, copy, page.view, page.returnTo);
@@ -267,7 +263,7 @@ async function render() {
     document.querySelector('#main-content')?.focus({ preventScroll: true });
     return;
   }
-  app.innerHTML = page?.type === 'legal' ? `${header(copy)}${legalContent(copy, page.docId)}` : homeContent(copy);
+  app.innerHTML = page?.type === 'legal' ? `${header(copy, page)}${legalContent(copy, page.docId)}` : homeContent(copy);
   bind(copy, page);
   if (!page) {
     import('./auth/account-ui.js').then(({ updateProfileBadge }) => updateProfileBadge(copy)).catch(() => {});

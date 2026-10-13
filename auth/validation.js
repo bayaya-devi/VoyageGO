@@ -1,4 +1,4 @@
-export const VOYAGEGO_PASSWORD_PATTERN = /^(?=.*[A-Z])(?=.*[a-z])(?=.*(?:[0-9]|[^A-Za-z0-9])).{6,}$/;
+export const VOYAGEGO_PASSWORD_PATTERN = /^.{15,128}$/u;
 
 export function normalizeEmail(value) {
   return String(value ?? '').trim().toLowerCase();

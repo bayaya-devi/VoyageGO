@@ -1,0 +1,90 @@
+:root {
+  /* GO Design System 2.0 — parent brand theme */
+  --go-font-display: "Aptos Display", "Segoe UI Variable Display", "Noto Sans Arabic", ui-sans-serif, system-ui, sans-serif;
+  --go-font-heading: "Aptos Display", "Segoe UI Variable Display", "Noto Sans Arabic", ui-sans-serif, system-ui, sans-serif;
+  --go-font-body: "Aptos", "Segoe UI Variable Text", "Noto Sans Arabic", ui-sans-serif, system-ui, sans-serif;
+  --go-font-editorial: Georgia, "Noto Naskh Arabic", serif;
+  --go-font-ui: "Aptos", "Segoe UI", "Noto Sans Arabic", ui-sans-serif, system-ui, sans-serif;
+  --go-font-data: "SFMono-Regular", Consolas, ui-monospace, monospace;
+
+  --go-text-display-xl: clamp(3.5rem, 8vw, 8rem);
+  --go-text-display: clamp(2.7rem, 6vw, 6rem);
+  --go-text-h1: clamp(2.35rem, 5.5vw, 5.5rem);
+  --go-text-h2: clamp(2rem, 4.5vw, 4.25rem);
+  --go-text-h3: clamp(1.3rem, 2.2vw, 2rem);
+  --go-text-lead: clamp(1.05rem, 1.6vw, 1.35rem);
+  --go-text-body: 1rem;
+  --go-text-small: .875rem;
+  --go-text-caption: .75rem;
+  --go-leading-display: .98;
+  --go-leading-heading: 1.08;
+  --go-leading-body: 1.65;
+  --go-tracking-display: -.055em;
+  --go-tracking-label: .12em;
+  --go-measure: 68ch;
+
+  --go-space-1: .25rem;
+  --go-space-2: .5rem;
+  --go-space-3: .75rem;
+  --go-space-4: 1rem;
+  --go-space-5: 1.5rem;
+  --go-space-6: 2rem;
+  --go-space-7: 3rem;
+  --go-space-8: 4rem;
+  --go-space-9: 6rem;
+  --go-space-10: 8rem;
+  --go-radius-control: 1rem;
+  --go-radius-panel: 1.5rem;
+  --go-radius-scene: 2.25rem;
+  --go-radius-round: 999px;
+
+  --go-duration-fast: 140ms;
+  --go-duration-normal: 240ms;
+  --go-duration-slow: 520ms;
+  --go-ease: cubic-bezier(.2, .8, .2, 1);
+  --go-ease-enter: cubic-bezier(.16, 1, .3, 1);
+
+  --voyagego-primary: #2f7768;
+  --voyagego-secondary: #86c5d8;
+  --voyagego-accent: #f3bd72;
+  --voyagego-neutral: #b8bec1;
+  --voyagego-background: #e4eee7;
+  --voyagego-text: #183b36;
+  --voyagego-muted: #355e56;
+
+  --go-glass-01: rgba(231, 241, 233, .64);
+  --go-glass-02: rgba(231, 241, 233, .79);
+  --go-glass-03: rgba(231, 241, 233, .94);
+  --go-glass-border: rgba(255, 255, 255, .48);
+  --go-glass-blur-01: 18px;
+  --go-glass-blur-02: 26px;
+  --go-glass-blur-03: 34px;
+  --go-shadow-soft: 0 18px 60px rgba(14, 55, 51, .12);
+  --go-shadow-float: 0 22px 70px rgba(14, 55, 51, .18);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --voyagego-background: #102d2d;
+    --voyagego-text: #e9f1e9;
+    --voyagego-muted: #c3d8ce;
+    --go-glass-01: rgba(8, 32, 33, .64);
+    --go-glass-02: rgba(8, 32, 33, .79);
+    --go-glass-03: rgba(8, 32, 33, .94);
+    --go-glass-border: rgba(255, 255, 255, .15);
+    --go-shadow-soft: 0 18px 60px rgba(0, 0, 0, .3);
+    --go-shadow-float: 0 22px 70px rgba(0, 0, 0, .44);
+  }
+}
+
+body { font-family: var(--go-font-body); }
+button, select, input, textarea { font-family: var(--go-font-ui); }
+h1, h2, h3 { font-family: var(--go-font-heading); }
+.hero-tagline, .eyebrow, .language-menu, .header-auth-link { font-family: var(--go-font-ui); }
+.secondary-header { transition: background var(--go-duration-normal) var(--go-ease), border-color var(--go-duration-normal) var(--go-ease); }
+.language-trigger, .profile-trigger, .header-auth-link { transition: transform var(--go-duration-fast), background var(--go-duration-fast), border-color var(--go-duration-fast); }
+.language-trigger:hover, .profile-trigger:hover, .header-auth-link:hover { transform: translateY(-1px); }
+
+@media (prefers-reduced-motion: reduce) {
+  .secondary-header, .language-trigger, .profile-trigger, .header-auth-link { transition: none; }
+}

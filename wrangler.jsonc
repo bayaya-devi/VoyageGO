@@ -1,0 +1,18 @@
+{
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  "name": "voyagego",
+  "pages_build_output_dir": "./dist",
+  "compatibility_date": "2026-10-13",
+  "compatibility_flags": ["nodejs_compat"],
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "voyagego-accounts",
+      "database_id": "5aa592dd-9df0-4632-b3cb-e455d26ba0e1",
+      "migrations_dir": "migrations"
+    }
+  ],
+  "vars": {
+    "PUBLIC_SITE_URL": "https://voyagego-0fn.pages.dev"
+  }
+}

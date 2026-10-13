@@ -1,36 +1,51 @@
-# Mise en service des comptes VoyageGo
+# Comptes VoyageGo — Cloudflare Pages, D1 et Better Auth
 
-## État actuel
+## Architecture du dépôt
 
-Le portail contient les parcours d’inscription, connexion, récupération, renouvellement de mot de passe, connexion Google et profil. Ils restent volontairement désactivés tant qu’un projet Supabase n’a pas été créé et configuré. Aucun compte ou service de démonstration n’est créé. Les clés privées `service_role` ne doivent jamais être utilisées dans le navigateur ni ajoutées au dépôt.
+- Le frontend statique est construit dans `dist/` pour Cloudflare Pages.
+- Les routes `functions/api/auth/[[route]].js` et `functions/api/health.js` s’exécutent sur Pages Functions, sur la même origine que le site.
+- Better Auth 1.7.7 gère les comptes, le hachage des mots de passe, les sessions, la vérification e-mail, les liens de réinitialisation, Google OAuth facultatif et les limites de requêtes.
+- La base D1 dédiée est `voyagego-accounts`; son schéma versionné se trouve dans `migrations/`.
+- Les e-mails sont envoyés par l’API transactionnelle Brevo uniquement depuis le serveur. Aucun secret ne va au navigateur.
 
-La base SQL et ses politiques RLS sont préparées dans `supabase/migrations/202610120001_profiles.sql`; cette migration n’est pas appliquée à un projet distant. Les pages juridiques restent à compléter et valider par l’entité exploitante avant l’activation des comptes.
+Les inscriptions restent désactivées tant que D1, le secret Better Auth et un expéditeur Brevo complet ne sont pas disponibles. Le bouton Google n’apparaît que lorsque les deux secrets OAuth sont présents. Aucun mode de démonstration ou session locale n’est fourni.
 
-## Configuration Supabase requise
+## Secrets Cloudflare
 
-1. Créer le projet Supabase de production et conserver son URL ainsi que sa clé publique `publishable` (ou `anon` historique). Configurer l’authentification par e-mail avec confirmation d’adresse.
-2. Dans la configuration des mots de passe Supabase, imposer au moins 6 caractères et les classes requises : une minuscule ASCII, une majuscule ASCII et au moins un caractère du groupe chiffres ou ponctuation ASCII. Le formulaire applique les mêmes critères côté navigateur, mais le contrôle fournisseur doit être activé côté serveur avant d’ouvrir les inscriptions. La documentation Supabase décrit les classes de caractères séparées par `:`.
-3. Appliquer la migration SQL du dépôt depuis le SQL Editor Supabase ou la CLI officielle. Vérifier qu’un utilisateur ne peut lire et modifier que sa propre ligne dans `public.profiles` et que le déclencheur crée un profil après inscription.
-4. Configurer les URL du site et de redirection Supabase : `https://bayaya-devi.github.io/VoyageGO/` et `https://bayaya-devi.github.io/VoyageGO/**`. Ajouter les URL locales nécessaires séparément, jamais un joker large en production.
-5. Configurer un serveur SMTP vérifié pour les confirmations, invitations et récupération de mot de passe. Les envois par défaut Supabase ne conviennent pas à une ouverture publique.
-6. Pour Google, configurer le fournisseur OAuth Supabase et le client Google. URI de rappel fournisseur : `https://<référence-du-projet>.supabase.co/auth/v1/callback`; origine JavaScript : `https://bayaya-devi.github.io`. Régler les URL de retour Supabase selon l’étape 4.
-7. En local seulement, copier `.env.example` vers `.env.local`, renseigner `SUPABASE_URL` et `SUPABASE_PUBLISHABLE_KEY`, puis exécuter :
+Depuis la racine du dépôt, ajouter les secrets avec Wrangler (les valeurs ne sont pas inscrites dans le code) :
 
-   ```powershell
-   npm run configure:auth
-   npm run build:auth
-   npm run test:e2e
-   ```
+```powershell
+npx wrangler pages secret put BETTER_AUTH_SECRET --project-name voyagego
+npx wrangler pages secret put BREVO_API_KEY --project-name voyagego
+npx wrangler pages secret put BREVO_SENDER_EMAIL --project-name voyagego
+npx wrangler pages secret put BREVO_SENDER_NAME --project-name voyagego
+```
 
-   `auth/runtime-config.js` ne contient que l’URL et la clé publique. Pour GitHub Pages, inclure ce fichier généré dans la publication après validation des paramètres; sa clé publishable est conçue pour être publique et les permissions reposent sur RLS. `.env.local` est ignoré par Git. Ne jamais passer une clé `service_role` à cette configuration.
+`BETTER_AUTH_SECRET` doit contenir au moins 32 caractères aléatoires. `BREVO_SENDER_EMAIL` doit être un expéditeur autorisé et le domaine d’envoi doit avoir été authentifié dans Brevo. Ne pas copier de clé API dans `.env`, `wrangler.toml` ou les variables publiques Pages.
 
-## Avant activation en production
+Google est facultatif : seulement après création et validation de l’application OAuth Google, ajouter `GOOGLE_CLIENT_ID` et `GOOGLE_CLIENT_SECRET` avec `wrangler pages secret put`. L’URI de retour Better Auth est `https://<origine-de-production>/api/auth/callback/google`.
 
-- Répéter la configuration dans un projet de production dont l’accès appartient à l’entité VoyageGo; vérifier SMTP, confirmation d’adresse, OAuth, URL de retour et critères serveur.
-- Mesurer les limites anti-abus/rate limits et ajouter CAPTCHA seulement si le risque et l’expérience le justifient.
-- Tester les parcours avec de vrais comptes contrôlés, y compris confirmation, Google, récupération, changement de mot de passe et révocation de session.
-- Vérifier RLS avec au moins deux utilisateurs différents; aucune donnée de profil ne doit être accessible à `anon` ni à un autre utilisateur.
-- Finaliser les mentions légales, politique de confidentialité, durées de conservation, responsable de traitement et contact avant activation.
-- Générer `auth/runtime-config.js` avec les paramètres publics validés et reconstruire `vendor/supabase-auth.js`; déployer puis vérifier chaque parcours sur GitHub Pages.
+## Migrations et déploiement
 
-Références officielles : [mots de passe](https://supabase.com/docs/guides/auth/passwords), [PKCE](https://supabase.com/docs/guides/auth/sessions/pkce-flow), [Row Level Security](https://supabase.com/docs/guides/database/postgres/row-level-security), [données utilisateur et profils](https://supabase.com/docs/guides/auth/managing-user-data), [SMTP](https://supabase.com/docs/guides/auth/auth-smtp), [URL de redirection](https://supabase.com/docs/guides/auth/redirect-urls), [Google OAuth](https://supabase.com/docs/guides/auth/social-login/auth-google).
+Vérifier l’état local puis appliquer les migrations à distance uniquement à la base VoyageGo :
+
+```powershell
+npm ci
+npm run build
+npx wrangler d1 migrations apply voyagego-accounts --remote
+npx wrangler --config wrangler.toml pages project list
+npm run deploy
+```
+
+Le projet Pages se nomme `voyagego`. Avant de déployer une nouvelle migration, sauvegarder la base depuis Cloudflare et ne jamais réinitialiser une base existante.
+
+Pour le développement local, créer un fichier ignoré `.dev.vars` avec un secret local aléatoire et `BETTER_AUTH_URL=http://localhost:8788`. Appliquer d’abord les migrations en local, puis lancer `npm run dev`. Ne jamais réutiliser le secret local en production.
+
+## Sécurité et mise en service
+
+- Les mots de passe ont une longueur serveur de 15 à 128 caractères; aucune règle de composition arbitraire n’est imposée.
+- Les sessions sont stockées dans D1 et utilisent des cookies `HttpOnly`, `Secure` en HTTPS, `SameSite=Lax` et une vérification d’origine pour les redirections.
+- Les limites Better Auth sont stockées dans D1 et renforcées sur les routes d’inscription, de connexion et de récupération.
+- Les réponses de récupération et d’inscription sont génériques pour réduire l’énumération d’adresses.
+- Les migrations de l’ancien prototype Supabase ne sont pas appliquées à Cloudflare et ne sont pas réutilisées.
+- Le lancement des comptes en production doit attendre l’authentification SPF/DKIM de l’expéditeur, un test réel de confirmation et de récupération, et la finalisation des informations de confidentialité/éditeur requises pour l’exploitant.

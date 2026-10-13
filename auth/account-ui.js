@@ -6,6 +6,51 @@ import { isValidEmail, isValidPassword, safeReturnTo } from './validation.js';
 
 const languageLabels = { fr: 'Français', ar: 'العربية', en: 'English', es: 'Español', pt: 'Português' };
 const recoveryKey = 'voyagego.password-recovery.pending';
+const photoMemoryKey = 'voyagego.account-photo.last';
+const accountPhotos = [
+  {
+    id: 'marrakesh', src: new URL('../assets/account-landscapes/marrakesh-medina.webp', import.meta.url).href,
+    location: { fr: 'Médina de Marrakech, Maroc', en: 'Marrakesh Medina, Morocco', ar: 'المدينة العتيقة بمراكش، المغرب', es: 'Medina de Marrakech, Marruecos', pt: 'Medina de Marraquexe, Marrocos' },
+    author: 'Val Vesa', source: 'https://unsplash.com/photos/colorful-marketplace-with-textiles-and-crafts-RYWS-IZLRKU', position: 'center 52%',
+  },
+  {
+    id: 'paris', src: new URL('../assets/account-landscapes/paris-eiffel.webp', import.meta.url).href,
+    location: { fr: 'Tour Eiffel, Paris, France', en: 'Eiffel Tower, Paris, France', ar: 'برج إيفل، باريس، فرنسا', es: 'Torre Eiffel, París, Francia', pt: 'Torre Eiffel, Paris, França' },
+    author: 'Lisa', source: 'https://unsplash.com/photos/eiffel-tower-at-paris-france-MGDIKg9Bw5U', position: 'center 48%',
+  },
+  {
+    id: 'patagonia', src: new URL('../assets/account-landscapes/patagonia-el-bolson.webp', import.meta.url).href,
+    location: { fr: 'El Bolsón, Patagonie, Argentine', en: 'El Bolsón, Patagonia, Argentina', ar: 'إل بولسون، باتاغونيا، الأرجنتين', es: 'El Bolsón, Patagonia, Argentina', pt: 'El Bolsón, Patagónia, Argentina' },
+    author: 'Hector Ramon Perez', source: 'https://unsplash.com/photos/landscape-photography-of-blue-body-of-water-viewing-mountain-under-blue-and-white-sky-FIlMQrXb7ig', position: 'center 55%',
+  },
+  {
+    id: 'rome', src: new URL('../assets/account-landscapes/rome-colosseum.webp', import.meta.url).href,
+    location: { fr: 'Colisée, Rome, Italie', en: 'Colosseum, Rome, Italy', ar: 'الكولوسيوم، روما، إيطاليا', es: 'Coliseo, Roma, Italia', pt: 'Coliseu, Roma, Itália' },
+    author: 'Ruben Ramirez', source: 'https://unsplash.com/photos/colosseum-rome-nAb-SFzL1GM', position: 'center 50%',
+  },
+];
+
+function photoForSession(view) {
+  const sessionKey = `voyagego.account-photo.${view}`;
+  try {
+    const remembered = sessionStorage.getItem(sessionKey);
+    const existing = accountPhotos.find((photo) => photo.id === remembered);
+    if (existing) return existing;
+  } catch { /* Continue with a transient photo if storage is unavailable. */ }
+  let previous = null;
+  try { previous = localStorage.getItem(photoMemoryKey); } catch { /* Storage may be unavailable. */ }
+  const choices = accountPhotos.filter((photo) => photo.id !== previous);
+  const selected = choices[Math.floor(Math.random() * choices.length)] || accountPhotos[0];
+  try {
+    sessionStorage.setItem(sessionKey, selected.id);
+    localStorage.setItem(photoMemoryKey, selected.id);
+  } catch { /* The form still works with an in-memory selection. */ }
+  return selected;
+}
+
+function photoMarkup(copy, authCopy, photo) {
+  return `<figure class="account-backdrop" style="--account-photo-position:${photo.position}"><img src="${escapeHtml(photo.src)}" alt="" decoding="async" fetchpriority="high"><div class="account-photo-shade" aria-hidden="true"></div></figure><div class="account-photo-caption"><strong lang="${copy.lang}" dir="auto">${escapeHtml(photo.location[copy.lang])}</strong><a href="${escapeHtml(photo.source)}" target="_blank" rel="noreferrer noopener">${escapeHtml(authCopy.photoBy)} ${escapeHtml(photo.author)} · Unsplash</a></div>`;
+}
 
 function escapeHtml(value) {
   return String(value ?? '').replace(/[&<>"']/g, (character) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[character]);
@@ -26,11 +71,11 @@ function field(id, label, type = 'text', options = {}) {
 }
 
 function passwordField(id, label, copy, autocomplete, confirmation = false) {
-  return `<div class="account-field"><label for="${id}">${escapeHtml(label)}</label><div class="account-input-wrap"><input id="${id}" name="${id}" type="password" autocomplete="${autocomplete}" ${confirmation ? '' : 'aria-describedby="password-rules"'} required><button class="password-toggle" type="button" data-password-toggle="${id}" aria-label="${escapeHtml(copy.showPassword)}" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/></svg></button></div></div>`;
+  return `<div class="account-field"><label for="${id}">${escapeHtml(label)}</label><div class="account-input-wrap"><input id="${id}" name="${id}" type="password" autocomplete="${autocomplete}" minlength="15" maxlength="128" ${confirmation ? '' : 'aria-describedby="password-rules"'} required><button class="password-toggle" type="button" data-password-toggle="${id}" aria-label="${escapeHtml(copy.showPassword)}" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/></svg></button></div></div>`;
 }
 
 function passwordRules(copy) {
-  return `<fieldset class="password-rules" id="password-rules"><legend>${escapeHtml(copy.passwordRules)}</legend><ul><li data-rule="length">${escapeHtml(copy.ruleLength)}</li><li data-rule="upper">${escapeHtml(copy.ruleUpper)}</li><li data-rule="lower">${escapeHtml(copy.ruleLower)}</li><li data-rule="number">${escapeHtml(copy.ruleNumberOrSymbol)}</li></ul></fieldset>`;
+  return `<fieldset class="password-rules" id="password-rules"><legend>${escapeHtml(copy.passwordRules)}</legend><ul><li data-rule="length">${escapeHtml(copy.ruleLength)}</li></ul></fieldset>`;
 }
 
 function googleMark() {
@@ -41,7 +86,7 @@ function providerButton(copy, enabled) {
   return `<button class="google-button" type="button" data-auth-action="google" ${enabled ? '' : 'disabled'}>${googleMark()}<span>${escapeHtml(copy.continueGoogle)}</span></button>`;
 }
 
-function viewMarkup(copy, authCopy, view, configured, session) {
+function viewMarkup(copy, authCopy, view, configured, session, googleEnabled) {
   if (view === 'profile' && session?.user) {
     return `<section class="account-panel" aria-labelledby="account-title"><p class="eyebrow">VoyageGo</p><h1 id="account-title">${escapeHtml(authCopy.profileTitle)}</h1><p class="account-intro">${escapeHtml(authCopy.authIntro)}</p><div class="account-status"><span>${escapeHtml(authCopy.emailStatus)}</span><strong>${escapeHtml(session.user.email_confirmed_at || session.user.confirmed_at ? authCopy.emailVerified : authCopy.emailPending)}</strong></div><form class="account-form" id="profile-form" novalidate>${field('first-name', authCopy.firstName, 'text', { value: session.profile?.first_name ?? '', autocomplete: 'given-name', maxLength: 80 })}${field('last-name', authCopy.lastName, 'text', { value: session.profile?.last_name ?? '', autocomplete: 'family-name', maxLength: 80 })}<div class="account-field"><label for="preferred-locale">${escapeHtml(authCopy.preferredLanguage)}</label><select id="preferred-locale" name="preferred-locale">${Object.entries(languageLabels).map(([code, name]) => `<option value="${code}" ${code === (session.profile?.preferred_locale || copy.lang) ? 'selected' : ''}>${name}</option>`).join('')}</select></div><p class="account-message" id="account-message" role="status" aria-live="polite"></p><button class="account-primary" type="submit" ${configured ? '' : 'disabled'}>${escapeHtml(authCopy.saveProfile)}</button><button class="account-secondary" type="button" data-auth-action="signout">${escapeHtml(authCopy.signOut)}</button></form></section>`;
   }
@@ -60,17 +105,13 @@ function viewMarkup(copy, authCopy, view, configured, session) {
     form = `<div class="account-message" id="account-message" role="status" aria-live="polite">${escapeHtml(authCopy.pending)}</div>`;
   }
 
-  const showGoogle = ['login', 'signup'].includes(view);
+  const showGoogle = googleEnabled && ['login', 'signup'].includes(view);
   return `<section class="account-panel" aria-labelledby="account-title"><p class="eyebrow">VoyageGo</p><h1 id="account-title">${escapeHtml(titles[view] || authCopy.signInTitle)}</h1><p class="account-intro">${escapeHtml(authCopy.authIntro)}</p>${showGoogle ? `<div class="account-provider">${providerButton(authCopy, configured)}<p class="account-divider"><span>${escapeHtml(authCopy.continueEmail)}</span></p></div>` : ''}${form}<a class="account-home-link" href="${escapeHtml(new URL(`${copy.lang}/`, document.baseURI).href)}">${escapeHtml(authCopy.backHome)}</a></section>`;
 }
 
 function criteria(password, copy) {
-  const checks = {
-    length: password.length >= 6,
-    upper: /[A-Z]/.test(password),
-    lower: /[a-z]/.test(password),
-    number: /(?:[0-9]|[^A-Za-z0-9])/.test(password),
-  };
+  const count = [...password].length;
+  const checks = { length: count >= 15 && count <= 128 };
   document.querySelectorAll('[data-rule]').forEach((item) => {
     const valid = Boolean(checks[item.dataset.rule]);
     item.classList.toggle('is-valid', valid);
@@ -98,7 +139,8 @@ function setBusy(form, busy, copy) {
 
 function hasRecoveryFlag() {
   try { if (sessionStorage.getItem(recoveryKey) === 'true') return true; } catch { /* Storage can be disabled by the browser. */ }
-  return new URLSearchParams(location.search).get('type') === 'recovery'
+  return Boolean(new URLSearchParams(location.search).get('token'))
+    || new URLSearchParams(location.search).get('type') === 'recovery'
     || new URLSearchParams(location.hash.slice(1)).get('type') === 'recovery';
 }
 
@@ -183,7 +225,7 @@ async function bindForm(app, copy, authCopy, view, configured, session, returnTo
     }
     if (kind === 'reset') {
       const recoveryPending = hasRecoveryFlag();
-      if (!recoveryPending || !session?.user) { setMessage(authCopy.recoveryInvalid, true); return; }
+      if (!recoveryPending) { setMessage(authCopy.recoveryInvalid, true); return; }
       if (!isValidPassword(form.elements.password.value)) { setMessage(authCopy.invalidPassword, true); return; }
       if (form.elements.password.value !== form.elements['confirm-password'].value) { setMessage(authCopy.passwordMismatch, true); return; }
     }
@@ -277,9 +319,10 @@ export async function renderAccount(app, copy, view, returnTo = null) {
     new URLSearchParams(location.search).has(key) || new URLSearchParams(location.hash.slice(1)).has(key));
 
   const configured = Boolean(client);
+  const googleEnabled = await (await import('./client.js')).isGoogleAuthEnabled();
   if (view === 'profile' && (!session?.user || profileError)) view = 'login';
   const displaySession = view === 'profile' && session?.user ? { ...session, profile } : session;
-  const alert = !configured ? `<div class="account-unavailable" role="status"><strong>${escapeHtml(authCopy.accountUnavailable)}</strong><span>${escapeHtml(authCopy.unavailableHelp)}</span></div>` : '';
+  const alert = !configured ? `<p class="account-unavailable" role="status">${escapeHtml(authCopy.unavailableHelp)}</p>` : '';
   const sessionAlert = state.error ? `<div class="account-unavailable" role="alert">${escapeHtml(authCopy.serviceError)}</div>` : '';
   const profileAlert = profileError ? `<div class="account-unavailable" role="alert">${escapeHtml(authCopy.profileUnavailable)}</div>` : '';
   const legalLinks = copy.legal.map((item) => {
@@ -287,7 +330,17 @@ export async function renderAccount(app, copy, view, returnTo = null) {
     url.search = new URLSearchParams({ page: 'legal', doc: item.id });
     return `<li><a href="${escapeHtml(url.href)}">${escapeHtml(item.label)}</a></li>`;
   }).join('');
-  app.insertAdjacentHTML('beforeend', `<main id="main-content" class="account-page" tabindex="-1"><div class="account-layout"><div class="account-aside" aria-hidden="true"><span class="account-orbit account-orbit-one"></span><span class="account-orbit account-orbit-two"></span><p>VoyageGo</p></div><div class="account-content">${sessionAlert}${profileAlert}${alert}${viewMarkup(copy, authCopy, view, configured, displaySession)}</div></div></main><footer class="site-footer account-footer"><nav class="footer-nav" aria-label="${escapeHtml(copy.footerLabel)}"><h2>${escapeHtml(copy.legalHeading)}</h2><ul>${legalLinks}</ul></nav><div class="footer-meta"><a href="${escapeHtml(new URL(`${copy.lang}/`, document.baseURI).href)}">${escapeHtml(authCopy.backHome)}</a><span>© ${new Date().getFullYear()} VoyageGo</span></div></footer>`);
+  const photo = photoForSession(view);
+  app.insertAdjacentHTML('afterbegin', photoMarkup(copy, authCopy, photo));
+  const backdrop = app.querySelector('.account-backdrop');
+  const image = backdrop?.querySelector('img');
+  const usePhotoFallback = () => {
+    backdrop?.classList.add('is-fallback');
+    app.querySelector('.account-photo-caption')?.setAttribute('hidden', '');
+  };
+  image?.addEventListener('error', usePhotoFallback, { once: true });
+  if (image?.complete && !image.naturalWidth) usePhotoFallback();
+  app.insertAdjacentHTML('beforeend', `<main id="main-content" class="account-page" tabindex="-1"><div class="account-layout"><div class="account-content">${sessionAlert}${profileAlert}${alert}${viewMarkup(copy, authCopy, view, configured, displaySession, googleEnabled)}</div></div></main><footer class="site-footer account-footer"><nav class="footer-nav" aria-label="${escapeHtml(copy.footerLabel)}"><h2>${escapeHtml(copy.legalHeading)}</h2><ul>${legalLinks}</ul></nav><div class="footer-meta"><a href="${escapeHtml(new URL(`${copy.lang}/`, document.baseURI).href)}">${escapeHtml(authCopy.backHome)}</a><span>© ${new Date().getFullYear()} VoyageGo</span></div></footer>`);
   if (callbackError) setMessage(authCopy.googleError, true);
   await bindForm(app, copy, authCopy, view, configured, displaySession, safeReturn);
 
@@ -295,7 +348,7 @@ export async function renderAccount(app, copy, view, returnTo = null) {
   if (passwordInput) criteria(passwordInput.value, authCopy);
   if (view === 'reset') {
     const hasRecoveryProof = recoveryEvent || hasRecoveryFlag();
-    if (!hasRecoveryProof || !session?.user) {
+    if (!hasRecoveryProof) {
       const form = app.querySelector('#account-form');
       form?.querySelectorAll('[type="submit"]').forEach((button) => { button.disabled = true; });
       setMessage(authCopy.recoveryInvalid, true);
