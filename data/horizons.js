@@ -1,0 +1,26 @@
+export const horizons = [
+  { id: 'earth-blue-hour', category: 'atmosphere', image: 'earth-blue-hour.webp', nasaId: 'iss072e724819', position: 'center 60%' },
+  { id: 'earth-pacific-blue', category: 'atmosphere', image: 'earth-pacific-blue.webp', nasaId: 'iss074e0089803', position: 'center 62%' },
+  { id: 'earth-sunset-band', category: 'atmosphere', image: 'earth-sunset-band.webp', nasaId: 'iss074e0722845', position: 'center 52%' },
+  { id: 'earth-noctilucent', category: 'atmosphere', image: 'earth-noctilucent.webp', nasaId: 'iss073e0257194', position: 'center' },
+  { id: 'earth-moonrise', category: 'atmosphere', image: 'earth-moonrise.webp', nasaId: 'STS052-23-022', position: 'center' },
+  { id: 'earth-sunrise-limb', category: 'atmosphere', image: 'earth-sunrise-limb.webp', nasaId: 'STS047-54-018', position: 'center' },
+  { id: 'ocean-sun-glint', category: 'ocean', image: 'ocean-sun-glint.webp', nasaId: 'iss034e048455', position: 'center' },
+  { id: 'ocean-cloud-river', category: 'ocean', image: 'ocean-cloud-river.webp', nasaId: 'iss020e047807', position: 'center' },
+  { id: 'ocean-cloud-islands', category: 'ocean', image: 'ocean-cloud-islands.webp', nasaId: 'iss036e025673', position: 'center' },
+  { id: 'ocean-midnight-blue', category: 'ocean', image: 'ocean-midnight-blue.webp', nasaId: 'iss067e316063', position: 'center 62%' },
+  { id: 'ocean-cloud-corridor', category: 'ocean', image: 'ocean-cloud-corridor.webp', nasaId: 'iss066e008725', position: 'center' },
+  { id: 'ocean-sunrise-arc', category: 'ocean', image: 'ocean-sunrise-arc.webp', nasaId: 'iss066e152100', position: 'center' },
+  { id: 'space-bug-nebula', category: 'space', image: 'space-bug-nebula.webp', nasaId: 'GSFC_20171208_Archive_e002086', position: 'center' },
+  { id: 'space-hourglass', category: 'space', image: 'space-hourglass.webp', nasaId: 'PIA14442', position: 'center' },
+  { id: 'space-trifid', category: 'space', image: 'space-trifid.webp', nasaId: 'PIA17834', position: 'center' },
+  { id: 'space-blue-ring', category: 'space', image: 'space-blue-ring.webp', nasaId: 'GSFC_20171208_Archive_e000577', position: 'center' },
+  { id: 'space-stellar-cloud', category: 'space', image: 'space-stellar-cloud.webp', nasaId: 'GSFC_20171208_Archive_e002039', position: 'center' },
+  { id: 'space-little-gem', category: 'space', image: 'space-little-gem.webp', nasaId: 'GSFC_20171208_Archive_e000657', position: 'center' },
+].map((horizon) => ({
+  ...horizon,
+  src: new URL(`../assets/horizons/${horizon.image}`, import.meta.url).href,
+  source: `https://images.nasa.gov/details/${horizon.nasaId}`,
+  credit: 'NASA',
+}));
+

@@ -1,18 +1,14 @@
 import * as THREE from './vendor/three.module.js';
 import { destinations, destinationVisuals, reliefTextureUrl, worldDataUrl } from './data/countries.js';
+import { cartesianToGeographic, featureAtGeographicPoint, geographicToCartesian, ringsIn } from './geography/spherical.js';
 
 const localeProperty = { fr: 'nameFr', en: 'nameEn', ar: 'nameAr', es: 'nameEs', pt: 'namePt' };
 const destinationByIso = new Map(destinations.map((destination) => [destination.iso3, destination]));
 const radians = Math.PI / 180;
 
 function coordinate(longitude, latitude, radius = 1) {
-  const phi = longitude * radians;
-  const theta = (90 - latitude) * radians;
-  return new THREE.Vector3(
-    -radius * Math.sin(theta) * Math.sin(phi),
-    radius * Math.cos(theta),
-    radius * Math.sin(theta) * Math.cos(phi),
-  );
+  const point = geographicToCartesian(longitude, latitude, radius);
+  return new THREE.Vector3(point.x, point.y, point.z);
 }
 
 function translatedName(feature, locale) {
@@ -27,32 +23,6 @@ function translatedName(feature, locale) {
 function flagFor(iso2) {
   if (!/^[A-Z]{2}$/.test(iso2 || '')) return '🌐';
   return String.fromCodePoint(...[...iso2].map((letter) => 127397 + letter.charCodeAt(0)));
-}
-
-function ringsIn(feature) {
-  const geometry = feature.geometry;
-  if (geometry.type === 'Polygon') return geometry.coordinates;
-  if (geometry.type === 'MultiPolygon') return geometry.coordinates.flat();
-  return [];
-}
-
-function featureAtPoint(features, longitude, latitude) {
-  const withinRing = (ring) => {
-    let inside = false;
-    for (let i = 0, j = ring.length - 1; i < ring.length; j = i++) {
-      const [x1, y1] = ring[i];
-      const [x2, y2] = ring[j];
-      const dx1 = ((x1 - longitude + 540) % 360) - 180;
-      const dx2 = ((x2 - longitude + 540) % 360) - 180;
-      if ((y1 > latitude) !== (y2 > latitude) && 0 < ((dx2 - dx1) * (latitude - y1)) / (y2 - y1 || Number.EPSILON) + dx1) inside = !inside;
-    }
-    return inside;
-  };
-
-  return features.find((feature) => {
-    const polygons = feature.geometry.type === 'Polygon' ? [feature.geometry.coordinates] : feature.geometry.coordinates;
-    return polygons.some((polygon) => withinRing(polygon[0]) && !polygon.slice(1).some(withinRing));
-  });
 }
 
 function drawSvgFallback(container, features, locale, onSelect) {
@@ -82,6 +52,7 @@ export async function mountGlobe(copy) {
   const popup = document.querySelector('#country-popup');
   const mapSection = document.querySelector('#map-section');
   const destinationVisual = document.querySelector('#destination-visual');
+  const journeyStage = document.querySelector('#journey-stage');
   const destinationLayers = [...document.querySelectorAll('[data-destination-layer]')];
   if (!canvasHost || !interaction || !picker || !popup || !mapSection) return () => {};
 
@@ -99,26 +70,33 @@ export async function mountGlobe(copy) {
   picker.innerHTML = `<option value="">${copy.countryPrompt}</option>${countries.map(({ feature, name }) => `<option value="${feature.properties.iso3}">${flagFor(feature.properties.iso2)} ${name}</option>`).join('')}`;
 
   let activeDestinationLayer = -1;
+  let destinationRequest = 0;
   const setDestinationScene = (iso3) => {
+    const request = ++destinationRequest;
     const visual = destinationVisuals[iso3];
     if (!destinationVisual || !destinationLayers.length || !visual) {
       destinationVisual?.classList.remove('is-visible');
       destinationVisual?.removeAttribute('data-country');
+      journeyStage?.classList.remove('has-destination-visual');
       return;
     }
     const nextLayerIndex = (activeDestinationLayer + 1) % destinationLayers.length;
     const nextLayer = destinationLayers[nextLayerIndex];
     nextLayer.onload = () => {
+      if (request !== destinationRequest) return;
       destinationLayers.forEach((layer, index) => layer.classList.toggle('is-active', index === nextLayerIndex));
       destinationVisual.classList.add('is-visible');
       destinationVisual.dataset.country = iso3;
+      journeyStage?.classList.add('has-destination-visual');
       activeDestinationLayer = nextLayerIndex;
     };
     nextLayer.onerror = () => {
+      if (request !== destinationRequest) return;
       nextLayer.removeAttribute('src');
       nextLayer.classList.remove('is-active');
       destinationVisual.classList.remove('is-visible');
       destinationVisual.removeAttribute('data-country');
+      journeyStage?.classList.remove('has-destination-visual');
     };
     nextLayer.style.objectPosition = visual.position || 'center';
     nextLayer.src = visual.src;
@@ -142,7 +120,17 @@ export async function mountGlobe(copy) {
     popup.hidden = false;
     popup.classList.toggle('is-available', Boolean(available));
     if (position) placePopup(popup, position.x, position.y);
-    popup.querySelector('.popup-close')?.addEventListener('click', () => { popup.hidden = true; });
+    popup.querySelector('.popup-close')?.addEventListener('click', () => {
+      popup.hidden = true;
+      picker.value = '';
+      setDestinationScene(null);
+      if (selectedOutline && globe) {
+        globe.remove(selectedOutline);
+        selectedOutline.geometry.dispose();
+        selectedOutline.material.dispose();
+        selectedOutline = null;
+      }
+    });
     picker.value = iso3 || '';
     if (announce) document.querySelector('#country-announcement').textContent = `${flag} ${name} — ${status}`;
     if (globe && feature) showCountryOutline(feature);
@@ -292,9 +280,10 @@ export async function mountGlobe(copy) {
     const hit = raycaster.intersectObject(planet, false)[0];
     if (!hit) return null;
     const local = globe.worldToLocal(hit.point.clone()).normalize();
-    const longitude = Math.atan2(-local.x, local.z) / radians;
-    const latitude = Math.asin(local.y) / radians;
-    return featureAtPoint(features, longitude, latitude);
+    const { longitude, latitude } = cartesianToGeographic(local.x, local.y, local.z);
+    stage.dataset.pickLongitude = longitude.toFixed(4);
+    stage.dataset.pickLatitude = latitude.toFixed(4);
+    return featureAtGeographicPoint(features, longitude, latitude);
   };
 
   const pose = (x, y, diameter) => ({
@@ -453,7 +442,7 @@ export async function mountGlobe(copy) {
     globe.position.y += (target.y - globe.position.y) * easing;
     const zoomedScale = target.scale * (progress >= .76 ? zoom : 1);
     globe.scale.setScalar(globe.scale.x + (zoomedScale - globe.scale.x) * easing);
-    const geographicFocus = Math.min(progress, .46) * 1.15;
+    const geographicFocus = -Math.min(progress, .46) * 1.15;
     globe.rotation.y += (geographicFocus + dragX - globe.rotation.y) * (pointerDown ? 1 : easing);
     globe.rotation.x += ((-.04 + dragY - globe.rotation.x) * (pointerDown ? 1 : easing));
     stage.dataset.rotationX = globe.rotation.x.toFixed(3);

@@ -464,12 +464,20 @@ body[dir="rtl"] .home-menu-trigger { align-items: flex-end; }
 /* Signature journey: living horizon, cinematic destinations and unobstructed globe. */
 .immersive-page::after { display: none; }
 .journey-stage { background: linear-gradient(180deg, color-mix(in srgb, var(--sky) 16%, var(--paper)) 0%, var(--paper) 48%, color-mix(in srgb, var(--sun) 14%, var(--paper-warm)) 100%); }
-.living-horizon { position: absolute; z-index: -2; inset: 0; overflow: hidden; pointer-events: none; }
+.living-horizon { position: absolute; z-index: -3; inset: 0; overflow: hidden; pointer-events: none; }
 .living-horizon::before { position: absolute; inset: -20%; content: ""; background: radial-gradient(ellipse at calc(18% + var(--journey-progress, 0) * 50%) 20%, color-mix(in srgb, var(--sky) 46%, transparent), transparent 36%), radial-gradient(ellipse at calc(90% - var(--journey-progress, 0) * 44%) 82%, color-mix(in srgb, var(--sun) 33%, transparent), transparent 35%); filter: blur(24px); transform: scale(calc(1 + var(--journey-progress, 0) * .1)); }
 .living-horizon span { position: absolute; inset-inline: -15%; height: 38%; border-radius: 50%; filter: blur(30px); opacity: .42; transform-origin: center; }
 .living-horizon span:nth-child(1) { top: 23%; background: color-mix(in srgb, var(--sky) 42%, transparent); transform: translate3d(calc(var(--journey-progress, 0) * 4vw), calc(var(--journey-progress, 0) * 5vh), 0) rotate(-4deg); }
 .living-horizon span:nth-child(2) { top: 52%; background: color-mix(in srgb, var(--horizon) 22%, transparent); transform: translate3d(calc(var(--journey-progress, 0) * -5vw), calc(var(--journey-progress, 0) * -2vh), 0) rotate(3deg); }
 .living-horizon span:nth-child(3) { bottom: -16%; background: color-mix(in srgb, var(--sun) 38%, transparent); transform: scale(calc(1 + var(--journey-progress, 0) * .12)); }
+.universal-horizon { position: absolute; z-index: -2; inset: 0; overflow: hidden; opacity: 0; transition: opacity 1.4s ease; pointer-events: none; }
+.universal-horizon::after { position: absolute; inset: 0; content: ""; background: linear-gradient(90deg, color-mix(in srgb, var(--paper) 77%, transparent) 0%, color-mix(in srgb, var(--paper) 38%, transparent) 48%, color-mix(in srgb, var(--paper) 26%, transparent) 100%), linear-gradient(0deg, color-mix(in srgb, var(--paper) 58%, transparent), transparent 62%); }
+.universal-horizon.is-ready { opacity: .7; }
+.universal-horizon img { width: 100%; height: 100%; object-fit: cover; filter: saturate(.82) contrast(.98); transform: scale(1.025); animation: horizon-breathe 24s ease-in-out alternate infinite; }
+.journey-stage.has-destination-visual .universal-horizon { opacity: 0; }
+.universal-horizon-credit { position: absolute; z-index: 8; inset-inline-start: clamp(16px, 2.4vw, 34px); bottom: max(16px, env(safe-area-inset-bottom)); color: var(--ink-soft); font-size: .58rem; text-decoration-thickness: 1px; text-underline-offset: 3px; opacity: .62; transition: opacity .5s ease; }
+.journey-stage.has-destination-visual .universal-horizon-credit { opacity: 0; pointer-events: none; }
+@keyframes horizon-breathe { from { transform: scale(1.025) translate3d(0, 0, 0); } to { transform: scale(1.075) translate3d(-.7%, -.4%, 0); } }
 .destination-visual { position: absolute; z-index: -1; inset: 0; overflow: hidden; opacity: 0; transition: opacity 1.1s ease; pointer-events: none; }
 .destination-visual::after { position: absolute; inset: 0; content: ""; background: linear-gradient(90deg, color-mix(in srgb, var(--paper) 82%, transparent) 0%, color-mix(in srgb, var(--paper) 42%, transparent) 43%, color-mix(in srgb, var(--paper) 24%, transparent) 100%), linear-gradient(0deg, color-mix(in srgb, var(--paper) 60%, transparent), transparent 58%); }
 .destination-visual.is-visible { opacity: .82; }
@@ -489,6 +497,7 @@ body[dir="rtl"] .home-menu-trigger { align-items: flex-end; }
 #country-picker.sr-only { position: absolute; width: 1px; height: 1px; min-height: 0; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); border: 0; }
 .map-attribution { opacity: .78; }
 .country-popup { width: min(100%, 420px); margin-top: 24px; padding: 0; border: 0; border-radius: 0; background: transparent; -webkit-backdrop-filter: none; backdrop-filter: none; box-shadow: none; }
+.country-popup .popup-close { top: -8px; inset-inline-end: -8px; display: grid; }
 .country-popup .popup-country { padding: 0; }
 .country-popup .popup-country strong { font-size: clamp(1.35rem, 2.1vw, 2rem); }
 .country-popup .popup-status { font-size: .82rem; }
@@ -496,6 +505,8 @@ body[dir="rtl"] .home-menu-trigger { align-items: flex-end; }
 .photo-credit { display: block; width: fit-content; margin-top: 10px; color: var(--ink-soft); font-size: .62rem; text-decoration-thickness: 1px; text-underline-offset: 3px; opacity: .78; }
 
 @media (prefers-color-scheme: dark) {
+  .universal-horizon::after { background: linear-gradient(90deg, color-mix(in srgb, var(--paper) 83%, transparent), color-mix(in srgb, var(--paper) 36%, transparent) 55%, color-mix(in srgb, var(--paper) 20%, transparent)), linear-gradient(0deg, color-mix(in srgb, var(--paper) 60%, transparent), transparent 66%); }
+  .universal-horizon img { filter: saturate(.75) brightness(.7) contrast(1.06); }
   .destination-visual::after { background: linear-gradient(90deg, color-mix(in srgb, var(--paper) 88%, transparent), color-mix(in srgb, var(--paper) 34%, transparent) 54%, color-mix(in srgb, var(--paper) 25%, transparent)), linear-gradient(0deg, color-mix(in srgb, var(--paper) 64%, transparent), transparent 62%); }
   .destination-visual img { filter: saturate(.76) brightness(.7) contrast(1.04); }
 }
@@ -511,11 +522,14 @@ body[dir="rtl"] .home-menu-trigger { align-items: flex-end; }
   .country-popup { position: static; width: min(100%, 360px); margin-top: 12px; }
   .country-invitation { display: none; }
   .destination-visual::after { background: linear-gradient(0deg, color-mix(in srgb, var(--paper) 88%, transparent) 0%, color-mix(in srgb, var(--paper) 18%, transparent) 62%), linear-gradient(90deg, color-mix(in srgb, var(--paper) 25%, transparent), transparent); }
+  .universal-horizon::after { background: linear-gradient(0deg, color-mix(in srgb, var(--paper) 83%, transparent), color-mix(in srgb, var(--paper) 18%, transparent) 68%), linear-gradient(90deg, color-mix(in srgb, var(--paper) 34%, transparent), transparent); }
+  .universal-horizon-credit { inset-inline-start: 14px; bottom: max(12px, env(safe-area-inset-bottom)); }
 }
 
 @media (prefers-reduced-motion: reduce) {
   .living-horizon::before,
   .living-horizon span,
+  .universal-horizon img,
   .destination-visual img,
   .scroll-arrow { animation: none; transform: none; transition: none; }
 }

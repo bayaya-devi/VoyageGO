@@ -8,7 +8,7 @@ Les visuels ci-dessous ont été sélectionnés pour l'expérience immersive Voy
 | France | `assets/destinations/france-alps.jpg` | [French Alps — Loïc Faucon / Wikimedia Commons](https://commons.wikimedia.org/wiki/File:French_Alps_(233127345).jpeg) | Paysage alpin, sans personne, animal, édifice ou symbole religieux visible. |
 | Thaïlande | `assets/destinations/thailand-jungle.jpg` | [Khlong Phanom jungle — Vyacheslav Argenberg / Wikimedia Commons](https://commons.wikimedia.org/wiki/File:Dramatic_karst_landscape_of_Surat_Thani,_Khlong_Phanom_jungle,_Thailand.jpg) | Relief karstique et forêt, sans personne, animal, édifice ou symbole religieux visible. |
 
-Les pays absents de ce registre utilisent l'atmosphère graphique VoyageGo. Aucun visuel non vérifié n'est substitué automatiquement.
+Les pays absents de ce registre restaurent l'horizon VoyageGo choisi au début de la visite. Aucun visuel non vérifié n'est substitué automatiquement.
 
 ## Données géographiques
 

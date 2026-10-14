@@ -1,4 +1,5 @@
 import { destinations, localeCodes } from './data/countries.js';
+import { mountHorizon } from './horizons.js';
 
 const app = document.querySelector('#app');
 const preferenceKey = 'voyagego-language';
@@ -15,6 +16,7 @@ const iconPaths = {
 
 let cleanupGlobe = () => {};
 let cleanupAccount = () => {};
+let cleanupHorizon = () => {};
 
 function icon(name, className = '') {
   return `<svg class="${className}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${iconPaths[name]}</svg>`;
@@ -121,6 +123,8 @@ function homeContent(copy) {
     <div class="journey-track" id="journey-track">
       <div class="journey-stage" id="journey-stage" data-progress="0">
         <div class="living-horizon" aria-hidden="true"><span></span><span></span><span></span></div>
+        <div class="universal-horizon" id="universal-horizon" aria-hidden="true"><img id="universal-horizon-image" alt=""></div>
+        <a class="universal-horizon-credit" id="universal-horizon-credit" target="_blank" rel="noreferrer"></a>
         <div class="destination-visual" id="destination-visual" aria-hidden="true"><img data-destination-layer="0" alt=""><img data-destination-layer="1" alt=""></div>
         <div id="globe-host" aria-hidden="true"></div>
         <div id="globe-interaction" role="application" tabindex="0" aria-label="${escapeHtml(copy.mapLabel)}"></div>
@@ -308,6 +312,8 @@ async function render() {
   cleanupGlobe = () => {};
   cleanupAccount();
   cleanupAccount = () => {};
+  cleanupHorizon();
+  cleanupHorizon = () => {};
   const locale = localeFromPath();
   if (!locale) { location.replace(new URL(homeUrl(preferredLocale()), document.baseURI)); return; }
   const { default: copy } = await import(`./${getDevice()}-${locale}.js`);
@@ -327,6 +333,7 @@ async function render() {
   app.innerHTML = page?.type === 'legal' ? `${header(copy, page)}${legalContent(copy, page.docId)}` : homeContent(copy);
   bind(copy, page);
   if (!page) {
+    cleanupHorizon = mountHorizon(copy);
     Promise.all([import('./auth/account-ui.js'), import('./auth/client.js')]).then(async ([{ updateProfileBadge }, { readSession, signOut }]) => {
       updateProfileBadge(copy);
       const { session } = await readSession();

@@ -6,7 +6,7 @@ const root = resolve(import.meta.dirname, '..');
 const out = resolve(root, 'dist');
 const origin = process.env.PUBLIC_SITE_URL || 'https://voyagego-0fn.pages.dev';
 const files = [
-  'index.html', 'app.js', 'globe.js', 'go-design-system.css', 'styles.css', 'robots.txt', 'sitemap.xml', '_routes.json',
+  'index.html', 'app.js', 'globe.js', 'horizons.js', 'go-design-system.css', 'styles.css', 'robots.txt', 'sitemap.xml', '_routes.json',
   'ordinateur-ar.js', 'ordinateur-en.js', 'ordinateur-es.js', 'ordinateur-fr.js', 'ordinateur-pt.js',
   'telephone-ar.js', 'telephone-en.js', 'telephone-es.js', 'telephone-fr.js', 'telephone-pt.js',
   'voyagego-icon.png', 'voyagego-logo.png', 'voyagego-logo-2x.png',

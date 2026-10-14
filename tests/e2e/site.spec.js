@@ -15,6 +15,74 @@ const viewports = [
   { name: 'mobile', viewport: { width: 375, height: 812 } },
 ];
 
+async function focusGlobe(page, longitude, latitude) {
+  const interaction = page.locator('#globe-interaction');
+  const stage = page.locator('#journey-stage');
+  const box = await interaction.boundingBox();
+  const rotation = await stage.evaluate((element) => ({ x: Number(element.dataset.rotationX), y: Number(element.dataset.rotationY) }));
+  const target = { x: latitude * Math.PI / 180, y: -longitude * Math.PI / 180 };
+  let horizontalRotation = target.y - rotation.y;
+  while (horizontalRotation > Math.PI) horizontalRotation -= Math.PI * 2;
+  while (horizontalRotation < -Math.PI) horizontalRotation += Math.PI * 2;
+  let remainingX = horizontalRotation / .0042;
+  let remainingY = (target.x - rotation.x) / .0042;
+  while (Math.abs(remainingX) > .5 || Math.abs(remainingY) > .5) {
+    const movementX = Math.max(-180, Math.min(180, remainingX));
+    const movementY = Math.max(-180, Math.min(180, remainingY));
+    const centerX = box.x + box.width / 2;
+    const centerY = box.y + box.height / 2;
+    await page.mouse.move(centerX, centerY);
+    await page.mouse.down();
+    await page.mouse.move(centerX + movementX, centerY + movementY, { steps: 5 });
+    await page.mouse.up();
+    remainingX -= movementX;
+    remainingY -= movementY;
+  }
+  await expect.poll(() => stage.evaluate((element) => Number(element.dataset.rotationX)), { timeout: 10_000 }).toBeCloseTo(target.x, 1);
+  await expect.poll(async () => {
+    const actual = await stage.evaluate((element) => Number(element.dataset.rotationY));
+    return Math.abs(Math.atan2(Math.sin(actual - target.y), Math.cos(actual - target.y)));
+  }, { timeout: 10_000 }).toBeLessThan(.05);
+}
+
+async function clickGeographicPoint(page, longitude, latitude) {
+  const geometry = await page.evaluate(({ longitude: pointLongitude, latitude: pointLatitude }) => {
+    const stage = document.querySelector('#journey-stage');
+    const interaction = document.querySelector('#globe-interaction').getBoundingClientRect();
+    const rotationX = Number(stage.dataset.rotationX);
+    const rotationY = Number(stage.dataset.rotationY);
+    const longitudeRadians = pointLongitude * Math.PI / 180;
+    const latitudeRadians = pointLatitude * Math.PI / 180;
+    const local = {
+      x: Math.cos(latitudeRadians) * Math.sin(longitudeRadians),
+      y: Math.sin(latitudeRadians),
+      z: Math.cos(latitudeRadians) * Math.cos(longitudeRadians),
+    };
+    const a = Math.cos(rotationX);
+    const b = Math.sin(rotationX);
+    const c = Math.cos(rotationY);
+    const d = Math.sin(rotationY);
+    const rotated = {
+      x: c * local.x + d * local.z,
+      y: b * d * local.x + a * local.y - b * c * local.z,
+      z: -a * d * local.x + b * local.y + a * c * local.z,
+    };
+    const fieldOfView = 37 * Math.PI / 180;
+    const focalLength = innerHeight / (2 * Math.tan(fieldOfView / 2));
+    const centerX = interaction.left + interaction.width / 2;
+    const centerY = interaction.top + interaction.height / 2;
+    const scaleToCamera = (interaction.width / 2) / focalLength;
+    const globeXToCamera = (centerX - innerWidth / 2) / focalLength;
+    const globeYToCamera = -(centerY - innerHeight / 2) / focalLength;
+    const perspective = 1 - scaleToCamera * rotated.z;
+    return {
+      x: innerWidth / 2 + focalLength * (globeXToCamera + scaleToCamera * rotated.x) / perspective,
+      y: innerHeight / 2 - focalLength * (globeYToCamera + scaleToCamera * rotated.y) / perspective,
+    };
+  }, { longitude, latitude });
+  await page.mouse.click(geometry.x, geometry.y);
+}
+
 for (const locale of locales) {
   for (const device of viewports) {
     test(`${device.name} ${locale.code}: immersive globe, worldwide selection and legal route`, async ({ browser }) => {
@@ -185,6 +253,81 @@ test('destination photography crossfades and unverified countries use the atmosp
   await page.locator('#country-picker').selectOption('CAN');
   await expect(page.locator('#destination-visual')).not.toHaveClass(/is-visible/);
   await expect(page.locator('#country-popup .photo-credit')).toHaveCount(0);
+});
+
+test('one curated horizon loads per opening, does not immediately repeat and returns after deselection', async ({ page }) => {
+  test.setTimeout(90_000);
+  const horizonRequests = [];
+  page.on('request', (request) => {
+    if (/\/assets\/horizons\/[^/?]+\.webp/.test(request.url())) horizonRequests.push(request.url());
+  });
+  await page.goto('fr/');
+  const scene = page.locator('#universal-horizon');
+  await expect(scene).toHaveClass(/is-ready/);
+  const first = await scene.getAttribute('data-horizon-id');
+  const firstSource = await page.locator('#universal-horizon-image').getAttribute('src');
+  expect(horizonRequests).toHaveLength(1);
+  await expect(page.locator('#universal-horizon-credit')).toHaveAttribute('href', /images\.nasa\.gov\/details\//);
+  await expect(page.locator('#country-picker')).toHaveAttribute('data-world-loaded', 'true', { timeout: 20_000 });
+
+  await page.evaluate(() => window.scrollTo(0, (document.querySelector('#journey-track').offsetHeight - innerHeight) * .84));
+  await page.locator('#country-picker').selectOption('MAR');
+  await expect(page.locator('#journey-stage')).toHaveClass(/has-destination-visual/, { timeout: 20_000 });
+  await page.locator('#country-popup .popup-close').click();
+  await expect(page.locator('#journey-stage')).not.toHaveClass(/has-destination-visual/);
+  await expect(scene).toHaveAttribute('data-horizon-id', first);
+  await expect(page.locator('#universal-horizon-image')).toHaveAttribute('src', firstSource);
+
+  horizonRequests.length = 0;
+  await page.reload();
+  await expect(scene).toHaveClass(/is-ready/);
+  await expect(scene).not.toHaveAttribute('data-horizon-id', first);
+  expect(horizonRequests).toHaveLength(1);
+});
+
+test('reduced-motion preference disables horizon movement', async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  await page.goto('fr/');
+  await expect(page.locator('#universal-horizon')).toHaveClass(/is-ready/);
+  await expect(page.locator('#universal-horizon-image')).toHaveCSS('animation-name', 'none');
+});
+
+test('real globe raycasting selects rotated and zoomed countries but not the ocean', async ({ page }) => {
+  test.setTimeout(120_000);
+  await page.goto('fr/');
+  await expect.poll(() => page.locator('#country-picker option').count(), { timeout: 20_000 }).toBeGreaterThan(230);
+  await page.evaluate(() => window.scrollTo(0, (document.querySelector('#journey-track').offsetHeight - innerHeight) * .84));
+  await expect(page.locator('#map-section')).not.toHaveAttribute('inert', '');
+
+  await focusGlobe(page, -6, 32);
+  await page.screenshot({ path: 'test-results/geo-control-africa-europe.png' });
+  await clickGeographicPoint(page, -6, 32);
+  const moroccoPick = await page.locator('#journey-stage').evaluate((stage) => ({ longitude: Number(stage.dataset.pickLongitude), latitude: Number(stage.dataset.pickLatitude) }));
+  expect(moroccoPick.longitude).toBeCloseTo(-6, 0);
+  expect(moroccoPick.latitude).toBeCloseTo(32, 0);
+  await expect(page.locator('#country-picker')).toHaveValue('MAR');
+
+  await page.locator('#globe-interaction').hover({ force: true });
+  await page.mouse.wheel(0, -650);
+  await expect.poll(async () => Number(await page.locator('#journey-stage').getAttribute('data-zoom'))).toBeGreaterThan(1.5);
+  await focusGlobe(page, 101, 15);
+  await page.screenshot({ path: 'test-results/geo-control-asia.png' });
+  await clickGeographicPoint(page, 101, 15);
+  await expect(page.locator('#country-picker')).toHaveValue('THA');
+
+  await focusGlobe(page, -52, -10);
+  await page.screenshot({ path: 'test-results/geo-control-americas.png' });
+  await clickGeographicPoint(page, -52, -10);
+  await expect(page.locator('#country-picker')).toHaveValue('BRA');
+
+  await focusGlobe(page, 178.1, -17.8);
+  await page.screenshot({ path: 'test-results/geo-control-oceania.png' });
+  await clickGeographicPoint(page, 178.1, -17.8);
+  await expect(page.locator('#country-picker')).toHaveValue('FJI');
+
+  await focusGlobe(page, -30, 0);
+  await clickGeographicPoint(page, -30, 0);
+  await expect(page.locator('#country-picker')).toHaveValue('FJI');
 });
 
 test('system color scheme changes the interface without reloading', async ({ page }) => {
