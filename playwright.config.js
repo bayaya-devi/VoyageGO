@@ -16,7 +16,7 @@ export default defineConfig({
     trace: 'retain-on-failure',
   },
   webServer: {
-    command: 'node tests/static-server.js',
+    command: 'npm run build && node tests/static-server.js',
     url: 'http://127.0.0.1:4173/VoyageGO/',
     reuseExistingServer: !process.env.CI,
     timeout: 15_000,

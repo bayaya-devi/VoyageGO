@@ -3,7 +3,7 @@ import { readFile, stat } from 'node:fs/promises';
 import { extname, resolve, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-const root = resolve(fileURLToPath(new URL('../', import.meta.url)));
+const root = resolve(fileURLToPath(new URL('../dist/', import.meta.url)));
 const basePath = '/VoyageGO';
 const mime = {
   '.html': 'text/html; charset=utf-8', '.js': 'text/javascript; charset=utf-8',

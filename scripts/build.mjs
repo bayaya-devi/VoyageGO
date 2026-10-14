@@ -21,6 +21,9 @@ await mkdir(resolve(out, 'auth/i18n'), { recursive: true });
 for (const file of ['auth/account-ui.js', 'auth/client.js', 'auth/validation.js']) await cp(resolve(root, file), resolve(out, file));
 await cp(resolve(root, 'auth/i18n'), resolve(out, 'auth/i18n'), { recursive: true });
 await mkdir(resolve(out, 'vendor'), { recursive: true });
+await cp(resolve(root, 'vendor/three.module.js'), resolve(out, 'vendor/three.module.js'));
+await cp(resolve(root, 'vendor/three.core.js'), resolve(out, 'vendor/three.core.js'));
+await cp(resolve(root, 'vendor/THREE-LICENSE.txt'), resolve(out, 'vendor/THREE-LICENSE.txt'));
 await build({
   entryPoints: [resolve(root, 'auth/auth-client-entry.js')],
   outfile: resolve(out, 'vendor/voyagego-auth-client.js'),
