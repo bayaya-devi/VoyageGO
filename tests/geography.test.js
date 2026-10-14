@@ -2,9 +2,11 @@ import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import test from 'node:test';
 import { cartesianToGeographic, featureAtGeographicPoint, geographicToCartesian } from '../geography/spherical.js';
+import { applyTerritoryPolicy } from '../geography/territory-policy.js';
 
 const world = JSON.parse(await readFile(new URL('../geography/world-countries.geojson', import.meta.url), 'utf8'));
 const features = world.features;
+const productFeatures = applyTerritoryPolicy(features);
 const tolerance = 1e-9;
 
 function assertNear(actual, expected, message) {
@@ -69,4 +71,14 @@ test('ocean points do not select distant countries and antimeridian islands rema
     assert.equal(featureAtGeographicPoint(features, longitude, latitude), undefined, `${longitude},${latitude} should be ocean`);
   }
   assert.equal(featureAtGeographicPoint(features, 178.1, -17.8)?.properties.iso3, 'FJI');
+});
+
+test('VoyageGo map policy renders and selects Western Sahara as part of Morocco', () => {
+  assert.equal(productFeatures.some((feature) => feature.properties.iso3 === 'ESH'), false);
+  for (const [longitude, latitude] of [[-13.2, 24.3],[-15.5,23.5],[-12.8,26.4]]) {
+    assert.equal(featureAtGeographicPoint(productFeatures,longitude,latitude)?.properties.iso3,'MAR',`${longitude},${latitude} should select Morocco`);
+  }
+  const morocco=productFeatures.find((feature)=>feature.properties.iso3==='MAR');
+  assert.equal(morocco.geometry.type,'Polygon');
+  assert.ok(morocco.geometry.coordinates[0].some(([longitude,latitude])=>longitude < -16 && latitude < 22));
 });

@@ -35,6 +35,8 @@ La navigation produit comprend quatre accès persistants : Accueil, Préparer, E
 
 L’accueil conserve le globe mondial comme élément signature. Le globe est manipulable au pointeur, au toucher et via une alternative accessible. WebGL bénéficie d’un repli SVG fonctionnel.
 
+Dans la représentation cartographique propre au produit VoyageGo, le Sahara occidental est intégré à la géométrie du Maroc. Cette même géométrie canonique s’applique au rendu 3D, au survol, au clic, au sélecteur clavier et au repli SVG.
+
 ## 4. Préparer
 
 - Mode guidé ou libre.

@@ -1,6 +1,7 @@
 import * as THREE from './vendor/three.module.js';
 import { destinations, destinationVisuals, reliefTextureUrl, worldDataUrl } from './data/countries.js';
 import { cartesianToGeographic, featureAtGeographicPoint, geographicToCartesian, ringsIn } from './geography/spherical.js';
+import { applyTerritoryPolicy } from './geography/territory-policy.js';
 
 const localeProperty = { fr: 'nameFr', en: 'nameEn', ar: 'nameAr', es: 'nameEs', pt: 'namePt' };
 const destinationByIso = new Map(destinations.map((destination) => [destination.iso3, destination]));
@@ -59,7 +60,7 @@ export async function mountGlobe(copy) {
   const response = await fetch(new URL(worldDataUrl.replace(/^\.\.\//, './'), import.meta.url));
   if (!response.ok) throw new Error(`World boundaries could not load (${response.status})`);
   const worldData = await response.json();
-  const features = worldData.features.filter((feature) => ringsIn(feature).length);
+  const features = applyTerritoryPolicy(worldData.features).filter((feature) => ringsIn(feature).length);
   let globe = null;
   let selectedOutline = null;
   const countries = features
