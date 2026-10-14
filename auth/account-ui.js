@@ -65,6 +65,12 @@ export function accountUrl(locale, view, returnTo = null) {
   return url.href;
 }
 
+function platformUrl(locale, page, extra = {}) {
+  const url = new URL(`${locale}/`, document.baseURI);
+  url.search = new URLSearchParams({ page, ...extra });
+  return url.href;
+}
+
 function field(id, label, type = 'text', options = {}) {
   const { autocomplete = '', required = true, maxLength = null, value = '', describedBy = '' } = options;
   return `<div class="account-field"><label for="${id}">${escapeHtml(label)}</label><div class="account-input-wrap"><input id="${id}" name="${id}" type="${type}" value="${escapeHtml(value)}" ${autocomplete ? `autocomplete="${autocomplete}"` : ''} ${maxLength ? `maxlength="${maxLength}"` : ''} ${describedBy ? `aria-describedby="${describedBy}"` : ''} ${required ? 'required' : ''}></div></div>`;
@@ -244,8 +250,11 @@ async function bindForm(app, copy, authCopy, view, configured, session, returnTo
           redirectTo: accountUrl(copy.lang, 'callback', returnTo),
         });
         if (error) throw error;
-        if (data?.session) location.assign(safeReturnTo(returnTo) || accountUrl(copy.lang, 'profile'));
-        else { form.reset(); setMessage(authCopy.signupSubmitted); }
+        if (data?.session) location.assign(safeReturnTo(returnTo) || platformUrl(copy.lang, 'onboarding', { step: '3' }));
+        else {
+          try { sessionStorage.setItem('voyagego-signup-email', email); } catch { /* The user can re-enter the email after a reload. */ }
+          location.assign(platformUrl(copy.lang, 'onboarding', { step: '2' }));
+        }
       } else if (kind === 'forgot') {
         const { error } = await requestPasswordReset(email, accountUrl(copy.lang, 'reset'));
         if (error) throw error;
@@ -269,7 +278,7 @@ export async function updateProfileBadge(copy) {
   if (!profileLinks.length) return;
   const { configured, session } = await readSession();
   for (const link of profileLinks) {
-    link.href = accountUrl(copy.lang, session ? 'profile' : 'login');
+    link.href = session ? platformUrl(copy.lang, 'profile') : accountUrl(copy.lang, 'login');
     if (session) {
       link.dataset.signedIn = 'true';
       link.setAttribute('aria-label', copy.accountLabel);
@@ -305,12 +314,12 @@ export async function renderAccount(app, copy, view, returnTo = null) {
     profileError = Boolean(result.error || !profile);
   }
   if (session && ['login', 'signup', 'forgot'].includes(view)) {
-    location.replace(safeReturn || accountUrl(copy.lang, 'profile'));
+    location.replace(safeReturn || platformUrl(copy.lang, 'profile'));
     unsubscribe();
     return () => {};
   }
   if (view === 'callback' && session) {
-    location.replace(safeReturn || accountUrl(copy.lang, 'profile'));
+    location.replace(safeReturn || platformUrl(copy.lang, 'onboarding', { step: '3' }));
     unsubscribe();
     return () => {};
   }

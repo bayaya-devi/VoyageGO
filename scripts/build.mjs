@@ -6,7 +6,7 @@ const root = resolve(import.meta.dirname, '..');
 const out = resolve(root, 'dist');
 const origin = process.env.PUBLIC_SITE_URL || 'https://voyagego-0fn.pages.dev';
 const files = [
-  'index.html', 'app.js', 'globe.js', 'horizons.js', 'go-design-system.css', 'styles.css', 'robots.txt', 'sitemap.xml', '_routes.json',
+  'index.html', 'app.js', 'globe.js', 'horizons.js', 'go-design-system.css', 'styles.css', 'robots.txt', 'sitemap.xml', '_routes.json', '_headers',
   'ordinateur-ar.js', 'ordinateur-en.js', 'ordinateur-es.js', 'ordinateur-fr.js', 'ordinateur-pt.js',
   'telephone-ar.js', 'telephone-en.js', 'telephone-es.js', 'telephone-fr.js', 'telephone-pt.js',
   'voyagego-icon.png', 'voyagego-logo.png', 'voyagego-logo-2x.png',
@@ -17,6 +17,7 @@ for (const file of files) await cp(resolve(root, file), resolve(out, file));
 for (const directory of ['ar', 'en', 'es', 'fr', 'pt', 'data', 'geography', 'locales', 'assets']) {
   await cp(resolve(root, directory), resolve(out, directory), { recursive: true });
 }
+await cp(resolve(root, 'platform'), resolve(out, 'platform'), { recursive: true });
 await mkdir(resolve(out, 'auth/i18n'), { recursive: true });
 for (const file of ['auth/account-ui.js', 'auth/client.js', 'auth/validation.js']) await cp(resolve(root, file), resolve(out, file));
 await cp(resolve(root, 'auth/i18n'), resolve(out, 'auth/i18n'), { recursive: true });

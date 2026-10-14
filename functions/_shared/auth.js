@@ -1,9 +1,17 @@
 import { betterAuth } from 'better-auth';
 import { APIError } from 'better-auth/api';
-import { sendAuthEmail } from './email.js';
+import { emailOTP } from 'better-auth/plugins/email-otp';
+import { sendAuthEmail, sendAuthOtp } from './email.js';
 
 const locales = new Set(['fr', 'en', 'ar', 'es', 'pt']);
 const passwordPattern = /^.{15,128}$/u;
+
+function requestLocale(ctx) {
+  const requested = ctx?.body?.preferredLocale;
+  if (locales.has(requested)) return requested;
+  const preferred = ctx?.request?.headers?.get?.('accept-language')?.split(',')[0]?.split('-')[0]?.toLowerCase();
+  return locales.has(preferred) ? preferred : 'fr';
+}
 
 function validateProfile(data) {
   for (const field of ['firstName', 'lastName']) {
@@ -47,13 +55,34 @@ export function createAuth(env, request) {
       onExistingUserSignUp: async () => {},
     },
     emailVerification: {
-      sendOnSignUp: true,
+      sendOnSignUp: false,
       sendOnSignIn: true,
       expiresIn: 3600,
       autoSignInAfterVerification: true,
       sendVerificationEmail: async ({ user, url }) => sendAuthEmail(env, {
         to: user.email, url, locale: user.preferredLocale, type: 'verify',
       }),
+    },
+    plugins: [emailOTP({
+      otpLength: 6,
+      expiresIn: 600,
+      allowedAttempts: 5,
+      storeOTP: 'hashed',
+      resendStrategy: 'rotate',
+      sendVerificationOnSignUp: true,
+      overrideDefaultEmailVerification: true,
+      rateLimit: { window: 60, max: 3 },
+      sendVerificationOTP: async ({ email, otp, type }, ctx) => sendAuthOtp(env, {
+        to: email, otp, type, locale: requestLocale(ctx),
+      }),
+    })],
+    account: {
+      accountLinking: {
+        enabled: true,
+        trustedProviders: ['google'],
+        allowDifferentEmails: false,
+        allowUnlinkingAll: false,
+      },
     },
     user: {
       additionalFields: {
@@ -79,6 +108,10 @@ export function createAuth(env, request) {
         '/sign-up/email': { window: 3600, max: 5 },
         '/forget-password': { window: 3600, max: 3 },
         '/reset-password': { window: 3600, max: 5 },
+        '/email-otp/send-verification-otp': { window: 600, max: 3 },
+        '/email-otp/verify-email': { window: 600, max: 8 },
+        '/email-otp/request-password-reset': { window: 3600, max: 3 },
+        '/email-otp/reset-password': { window: 3600, max: 5 },
       },
     },
     advanced: {

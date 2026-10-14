@@ -4,9 +4,9 @@
 
 ## Constat dans le dépôt et le site
 
-- VoyageGo est publié sous GitHub Pages, à l’adresse `https://bayaya-devi.github.io/VoyageGO/`.
-- Le dépôt ne contient actuellement ni configuration Cloudflare, ni intégration AdSense, ni identifiant éditeur publicitaire.
-- Le module de compte reste indisponible sans configuration Supabase. Aucun compte ne peut être créé dans la configuration publiée actuelle.
+- La nouvelle cible préparée est Cloudflare Pages, Pages Functions et D1. La production existante n’est pas modifiée par cette branche de travail.
+- Le dépôt contient la configuration technique Cloudflare, mais aucune intégration AdSense ni identifiant éditeur publicitaire.
+- Le module de compte nécessite Better Auth, D1 et au moins un canal configuré : Brevo pour e-mail/OTP ou Google OAuth. En l’absence de secrets, l’interface reste honnêtement indisponible.
 - La préférence de langue manuelle est conservée dans `localStorage` (`voyagego-language`), pas dans un cookie.
 - Aucun script de mesure d’audience ou de publicité facultative n’est configuré dans cette version.
 - L’adresse de contact fournie pour publication est `aetbconseil@gmail.com`.

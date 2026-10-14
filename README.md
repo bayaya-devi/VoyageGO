@@ -1,42 +1,63 @@
-# VoyageGo — portail international immersif V2
+# VoyageGo — plateforme mondiale unique
 
-VoyageGo relie des portails nationaux indépendants. Le Maroc ouvre [MarocoGO](https://bayaya-devi.github.io/MarocoGO/); la France, l’Espagne, l’Italie et le Portugal restent annoncés « bientôt disponibles ». Aucun autre dépôt national n’est modifié par ce projet.
+VoyageGo est une seule plateforme de voyage mondiale : un compte, un profil, un carnet de voyage et un espace prestataire. Les pays sont des contenus et des capacités activables dans la même application, pas des applications nationales indépendantes.
 
-## Déploiement
+## État de la V1
 
-Site statique servi à `https://bayaya-devi.github.io/VoyageGO/`. Le dépôt GitHub Pages est configuré pour publier la branche `main` à la racine; le globe Three.js et les données géographiques sont intégrés au dépôt, sans CDN d’exécution.
+- Cinq interfaces séparées : français, arabe RTL, anglais, espagnol et portugais.
+- Globe mondial 3D avec repli SVG accessible.
+- Espaces Accueil, Préparer, Explorer et Profil.
+- Onboarding en huit étapes avec OTP e-mail, trois pays favoris et préférences.
+- Compte voyageur et capacité prestataire rattachés à la même identité.
+- API Cloudflare Pages Functions versionnée et base Cloudflare D1.
+- Demandes de réservation directes : `pending`, `accepted`, `rejected`, `cancelled`, `expired`, `completed`.
+- Aucun paiement actif et aucun service commercial présenté comme disponible.
+
+Les contenus pilotes proposés sont le Maroc, la France et la Thaïlande. Leur statut commercial reste `inactive` jusqu’à validation explicite du propriétaire.
 
 ## Architecture
 
-- `index.html` choisit la langue manuelle enregistrée, puis celle du navigateur, puis le français.
-- `/fr/`, `/en/`, `/ar/`, `/es/` et `/pt/` sont les routes linguistiques; l’arabe est RTL.
-- `app.js` compose le récit, les routes légales et les contrôles; les entrées `ordinateur-*` et `telephone-*` chargent cinq catalogues dédiés.
-- `globe.js` gère la scène Three.js, le mouvement de caméra piloté par le défilement, les frontières, la sélection pays et le secours SVG interactif.
-- `vendor/` contient Three.js 0.186.1 et sa licence MIT. `data/countries.js` centralise les pays et l’état vérifié des portails.
-- `geography/world-countries.geojson` contient 177 unités géographiques Natural Earth avec noms localisés. `geography/etopo-world-relief.jpg` est une image de relief mondial ETOPO 2022 fournie par le service cartographique NOAA.
-- `FRONTEND-CONSTITUTION.md` est révisée en version 2.0 pour formaliser le parcours immersif et les cinq langues.
+- Frontend statique modulaire en JavaScript moderne et CSS.
+- `platform/` contient les interfaces produit et les ressources linguistiques.
+- `functions/api/v1/` expose l’API métier protégée par session.
+- Better Auth gère identité, sessions, compte e-mail et Google OAuth.
+- `migrations/0001_better_auth.sql` contient le socle d’identité.
+- `migrations/0002_world_platform.sql` contient les 11 tables métier minimales.
+- `data/`, `geography/` et `globe.js` portent le registre mondial et la cartographie.
+- `FRONTEND-CONSTITUTION.md` est la référence produit et design.
+- `docs/WORLD-PLATFORM-ARCHITECTURE.md` documente permissions, API et états.
 
-## Fonctionnalités et limites
+Les anciens fichiers Supabase sont conservés à titre historique mais ne participent pas au runtime Cloudflare.
 
-- Accueil sans barre de navigation classique, commandes de langue flottantes, narration au scroll et globe mondial 3D.
-- Relief ombré ETOPO 2022; frontières mondiales Natural Earth; globe tactile et survolable. Le sélecteur pays au clavier et la carte SVG interactive forment les alternatives accessibles.
-- Le Maroc redirige vers MarocoGO. La France et les autres destinations futures affichent un statut exact et une action désactivée.
-- La langue manuelle reste dans le `localStorage` du domaine VoyageGo; elle n’est pas partagée automatiquement entre les domaines nationaux.
-- Aucun traceur ou compte central n’est activé. Les pages juridiques restent des brouillons à compléter par l’entité exploitante et ne constituent pas un avis juridique.
-- Le module de comptes central est préparé sur Supabase Auth/Postgres avec flux PKCE, profil protégé par RLS, connexion Google et parcours e-mail; il reste désactivé tant que le fournisseur, SMTP, OAuth, la migration SQL et les obligations légales ne sont pas configurés. Voir [`docs/AUTH-SETUP.md`](docs/AUTH-SETUP.md).
-- Les performances de terrain/Core Web Vitals et l’expérience sur appareils physiques doivent encore être mesurées; elles ne sont pas déclarées atteintes par les tests locaux.
-
-## Vérification locale
+## Configuration locale
 
 ```powershell
-npm install
-npm run test:e2e
-npm run test:a11y
+npm ci
+npm run build
+npx wrangler d1 migrations apply voyagego-accounts --local
+npx wrangler pages dev dist --binding BETTER_AUTH_SECRET=une-valeur-locale-longue --binding BETTER_AUTH_URL=http://127.0.0.1:8788 --binding PUBLIC_SITE_URL=http://127.0.0.1:8788
 ```
 
-Les tests démarrent un serveur statique local sous `/VoyageGO/` via Playwright. Pour une simple prévisualisation, servir le dossier à la racine d’un serveur HTTP et ouvrir `/fr/` ou une autre route localisée.
+Copier `.dev.vars.example` vers `.dev.vars` pour un environnement local durable. Ne jamais versionner les vraies clés Brevo ou Google.
+
+## Vérification
+
+```powershell
+npm run test:unit
+npm run build
+npm run test:e2e
+npm audit
+```
+
+Les mesures Core Web Vitals sur appareils réels restent nécessaires avant ouverture commerciale.
+
+## Déploiement
+
+La cible est Cloudflare Pages avec Functions et D1. La migration distante, les secrets, puis le déploiement ne doivent être exécutés qu’après validation des pays pilotes, des textes juridiques, du domaine d’envoi et de Google OAuth. La commande `npm run deploy` existe mais n’est pas une autorisation de publier.
+
+MarocoGO n’est ni modifié ni utilisé comme backend par ce dépôt.
 
 ## Sources géographiques
 
-- Frontières et noms de pays : [Natural Earth, admin-0 1:110m](https://github.com/nvkelso/natural-earth-vector), domaine public. Le jeu est fourni avec ses noms arabe, anglais, espagnol, français et portugais.
-- Relief : [NOAA NCEI ETOPO 2022](https://www.ncei.noaa.gov/products/etopo-global-relief-model), service de relief ombré global. L’image locale est préexportée en projection équirectangulaire pour le globe; elle n’est pas recalculée sur le navigateur.
+- Frontières : Natural Earth admin-0 1:110m, domaine public.
+- Relief : NOAA NCEI ETOPO 2022, export local équirectangulaire.

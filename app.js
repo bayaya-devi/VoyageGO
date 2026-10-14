@@ -17,6 +17,7 @@ const iconPaths = {
 let cleanupGlobe = () => {};
 let cleanupAccount = () => {};
 let cleanupHorizon = () => {};
+let cleanupPlatform = () => {};
 
 function icon(name, className = '') {
   return `<svg class="${className}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${iconPaths[name]}</svg>`;
@@ -48,6 +49,9 @@ function currentPage() {
   const params = new URLSearchParams(location.search);
   if (params.get('page') === 'legal') return { type: 'legal', docId: params.get('doc') };
   if (params.get('page') === 'account') return { type: 'account', view: params.get('view') || 'login', returnTo: params.get('returnTo') };
+  if (['prepare','explore','profile','provider','listing','bookings','onboarding'].includes(params.get('page'))) {
+    return { type: params.get('page'), step: params.get('step'), scope: params.get('scope') };
+  }
   return null;
 }
 
@@ -66,6 +70,12 @@ function accountUrl(locale, view, returnTo = null) {
   return url.href;
 }
 
+function platformUrl(locale, page, extra = {}) {
+  const url = new URL(homeUrl(locale));
+  url.search = new URLSearchParams({ page, ...extra });
+  return url.href;
+}
+
 function menuItems(copy) {
   return localeCodes.map((locale) => `<li><button type="button" data-language="${locale}" lang="${locale}" dir="${locale === 'ar' ? 'rtl' : 'ltr'}" ${locale === copy.lang ? 'aria-current="true"' : ''}><span class="language-symbol" aria-hidden="true">${{ fr: '◌', ar: '◉', en: '◎', es: '◍', pt: '◯' }[locale]}</span><span>${copy.languageNames[locale]}</span></button></li>`).join('');
 }
@@ -79,6 +89,8 @@ function homeMenu(copy) {
   return `<div class="home-menu" id="home-menu">
     <div class="home-menu-panel" id="home-menu-panel" aria-label="${escapeHtml(copy.menu)}" hidden>
       <div class="home-menu-primary" id="home-menu-primary">
+        <a href="${escapeHtml(platformUrl(copy.lang, 'prepare'))}">${escapeHtml(copy.steps[1].title)}</a>
+        <a href="${escapeHtml(platformUrl(copy.lang, 'explore'))}">${escapeHtml(copy.steps[2].title)}</a>
         <a href="${escapeHtml(accountUrl(copy.lang, 'login'))}" data-home-login>${escapeHtml(copy.login)}</a>
         <a href="${escapeHtml(accountUrl(copy.lang, 'signup'))}" data-home-signup>${escapeHtml(copy.signup)}</a>
         <button type="button" id="home-language-trigger" aria-expanded="false" aria-controls="home-language-menu"><span>${escapeHtml(copy.language)}</span><span aria-hidden="true">›</span></button>
@@ -100,6 +112,7 @@ function header(copy, page = null) {
   return `<a class="skip-link" href="#main-content">${escapeHtml(copy.skip)}</a>
     <header class="secondary-header">
       <a class="brand" href="${escapeHtml(homeUrl(copy.lang))}" aria-label="VoyageGo — ${escapeHtml(copy.home)}"><img src="${new URL('voyagego-logo-2x.png', document.baseURI).href}" width="1086" height="362" alt="VoyageGo"></a>
+      <nav class="secondary-primary-nav" aria-label="${escapeHtml(copy.menu)}"><a href="${escapeHtml(platformUrl(copy.lang,'prepare'))}" ${page?.type==='prepare'?'aria-current="page"':''}>${escapeHtml(copy.steps[1].title)}</a><a href="${escapeHtml(platformUrl(copy.lang,'explore'))}" ${page?.type==='explore'?'aria-current="page"':''}>${escapeHtml(copy.steps[2].title)}</a></nav>
       <div class="header-actions">${accountActions}${languageControl(copy)}</div>
     </header>`;
 }
@@ -107,9 +120,9 @@ function header(copy, page = null) {
 function destinationShortcuts(copy) {
   return destinations.map((country) => {
     const name = country.names[copy.lang];
-    const status = country.status === 'available' ? copy.available : copy.comingSoon;
+    const status = country.status === 'content' ? copy.available : copy.comingSoon;
     const content = `<span class="destination-dot" aria-hidden="true"></span><span><bdi lang="${copy.lang}">${escapeHtml(name)}</bdi><small>${escapeHtml(status)}</small></span>${icon('arrow', 'destination-arrow')}`;
-    return `<button class="destination-shortcut ${country.status === 'available' ? 'is-available' : ''}" type="button" data-destination="${country.iso3}" aria-label="${escapeHtml(name)} — ${escapeHtml(status)}">${content}</button>`;
+    return `<button class="destination-shortcut ${country.status === 'content' ? 'is-available' : ''}" type="button" data-destination="${country.iso3}" aria-label="${escapeHtml(name)} — ${escapeHtml(status)}">${content}</button>`;
   }).join('');
 }
 
@@ -164,17 +177,19 @@ function legalContent(copy, docId) {
 function setMetadata(copy, route) {
   const page = route?.type === 'legal' ? copy.legalPages[route.docId] : null;
   const account = route?.type === 'account';
+  const platform = route && !page && !account ? route.type : null;
   document.documentElement.lang = copy.lang;
   document.documentElement.dir = copy.direction;
-  document.title = page ? `${page.title} — VoyageGo` : account ? `${copy.accountTitle} — VoyageGo` : `VoyageGo — ${copy.title}`;
+  const platformTitle = platform ? ({prepare:copy.steps[1].title,explore:copy.steps[2].title,profile:copy.accountLabel,provider:'VoyageGo',listing:'VoyageGo',bookings:'VoyageGo',onboarding:'VoyageGo'}[platform]) : null;
+  document.title = page ? `${page.title} — VoyageGo` : account ? `${copy.accountTitle} — VoyageGo` : platformTitle ? `${platformTitle} — VoyageGo` : `VoyageGo — ${copy.title}`;
   const description = page?.intro || (account ? copy.accountDescription : copy.description);
   const meta = document.querySelector('meta[name="description"]');
   if (meta) meta.content = description;
   let robots = document.querySelector('meta[name="robots"]');
   if (!robots) { robots = document.createElement('meta'); robots.name = 'robots'; document.head.append(robots); }
-  robots.content = page || account ? 'noindex,follow' : 'index,follow';
+  robots.content = page || account || ['profile','provider','listing','bookings','onboarding'].includes(platform) ? 'noindex,follow' : 'index,follow';
   const canonical = document.querySelector('link[rel="canonical"]') || document.head.appendChild(Object.assign(document.createElement('link'), { rel: 'canonical' }));
-  canonical.href = page ? legalUrl(copy.lang, route.docId) : homeUrl(copy.lang);
+  canonical.href = page ? legalUrl(copy.lang, route.docId) : platform ? platformUrl(copy.lang, platform) : homeUrl(copy.lang);
   const updateMeta = (selector, content) => {
     let tag = document.querySelector(selector);
     if (!tag) {
@@ -210,12 +225,13 @@ function bind(copy, page) {
     try { localStorage.setItem(preferenceKey, locale); } catch { /* The language still changes for this visit. */ }
     if (page?.type === 'legal') location.assign(legalUrl(locale, page.docId));
     else if (page?.type === 'account') location.assign(accountUrl(locale, page.view, page.returnTo));
+    else if (page) location.assign(platformUrl(locale, page.type, page.step ? { step: page.step } : page.scope ? { scope: page.scope } : {}));
     else location.assign(homeUrl(locale));
   }));
   document.querySelector('#country-picker')?.addEventListener('change', (event) => {
     if (event.currentTarget.dataset.worldLoaded === 'true') return;
     const country = destinations.find((candidate) => candidate.iso3 === event.currentTarget.value);
-    if (country?.status === 'available' && country.url) location.assign(country.url);
+    if (country?.status === 'content') location.assign(platformUrl(copy.lang, 'explore', { country: country.iso2 }));
     else if (country) announce(copy.comingSoonMessage);
   });
   document.querySelectorAll('#language-trigger').forEach((trigger) => trigger.addEventListener('click', () => {
@@ -282,7 +298,7 @@ function bind(copy, page) {
   }));
   document.querySelectorAll('[data-destination]').forEach((button) => button.addEventListener('click', () => {
     const country = destinations.find((candidate) => candidate.iso3 === button.dataset.destination);
-    if (country?.status === 'available' && country.url) location.assign(country.url);
+    if (country?.status === 'content') location.assign(platformUrl(copy.lang, 'explore', { country: country.iso2 }));
     else {
       const picker = document.querySelector('#country-picker');
       if (picker?.querySelector(`option[value="${country?.iso3}"]`)) {
@@ -314,6 +330,8 @@ async function render() {
   cleanupAccount = () => {};
   cleanupHorizon();
   cleanupHorizon = () => {};
+  cleanupPlatform();
+  cleanupPlatform = () => {};
   const locale = localeFromPath();
   if (!locale) { location.replace(new URL(homeUrl(preferredLocale()), document.baseURI)); return; }
   const { default: copy } = await import(`./${getDevice()}-${locale}.js`);
@@ -328,6 +346,15 @@ async function render() {
     cleanupAccount = await renderAccount(app, copy, page.view, page.returnTo);
     await updateProfileBadge(copy);
     document.querySelector('#main-content')?.focus({ preventScroll: true });
+    return;
+  }
+  if (page && page.type !== 'legal') {
+    app.innerHTML = header(copy, page);
+    bind(copy, page);
+    const { renderPlatform } = await import('./platform/ui.js');
+    cleanupPlatform = await renderPlatform(app, copy, page);
+    const { updateProfileBadge } = await import('./auth/account-ui.js');
+    await updateProfileBadge(copy);
     return;
   }
   app.innerHTML = page?.type === 'legal' ? `${header(copy, page)}${legalContent(copy, page.docId)}` : homeContent(copy);

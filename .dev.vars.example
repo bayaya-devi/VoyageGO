@@ -1,3 +1,9 @@
 BETTER_AUTH_SECRET=GENERATE_A_UNIQUE_LOCAL_SECRET_OF_AT_LEAST_32_CHARACTERS
 BETTER_AUTH_URL=http://localhost:8788
 PUBLIC_SITE_URL=http://localhost:8788
+# Optional until the owner verifies the relevant providers. Never commit real values.
+# BREVO_API_KEY=
+# BREVO_SENDER_EMAIL=
+# BREVO_SENDER_NAME=VoyageGo
+# GOOGLE_CLIENT_ID=
+# GOOGLE_CLIENT_SECRET=

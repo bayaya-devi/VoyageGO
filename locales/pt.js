@@ -2,12 +2,12 @@ export default {
   lang: 'pt', direction: 'ltr', languageName: 'Português',
   languageNames: { fr: 'Français', ar: 'العربية', en: 'English', es: 'Español', pt: 'Português' },
   title: 'A sua próxima descoberta começa aqui.',
-  description: 'A VoyageGo liga viajantes a destinos nacionais. Escolha um país e descubra o seu mundo.',
+  description: 'A VoyageGo reúne descoberta, preparação e diário de viagem numa única plataforma mundial.',
   tag: 'O MUNDO ESPERA POR SI', intro: 'Um mundo para explorar, país após país.',
   cta: 'Comece a sua viagem', scroll: 'Deslize para explorar',
   mapEyebrow: 'Um mundo de possibilidades', mapTitle: 'O mundo ao alcance do olhar', mapTitleEmphasis: 'Escolha', mapTitleRest: 'o seu próximo destino.',
   mapIntro: 'Escolha um país no mapa.', countryInvitation: 'Deixe esta paisagem abrir a primeira página da sua próxima viagem.', photoCredit: 'Fotografia',
-  comingSoonMessage: 'Esta plataforma nacional será anunciada quando estiver pronta.',
+  comingSoonMessage: 'Este destino está visível no globo e o seu conteúdo está em preparação.',
   mapLabel: 'Globo terrestre interativo com relevo topográfico mundial',
   mapUnavailable: 'Não foi possível carregar o globo. Escolha um país na lista ou no mapa alternativo.',
   mapAttribution: 'Relevo mundial NOAA ETOPO 2022 · Fronteiras Natural Earth',
@@ -15,8 +15,8 @@ export default {
   countryDetails: 'Destino selecionado', mapHint: 'Rode o globo e selecione um país',
   globeLoading: 'A preparar o globo…', globeReady: 'O globo está pronto. Rode-o ou selecione um país.',
   reliefError: 'O relevo detalhado está temporariamente indisponível.', fallbackMessage: 'Mapa interativo alternativo ativado.',
-  available: 'Disponível', discover: 'Descobrir', destinationsLabel: 'Destinos e disponibilidade das plataformas',
-  openCountry: 'Descobrir MarocoGO', comingSoon: 'Em breve',
+  available: 'Conteúdo disponível', discover: 'Explorar no VoyageGo', destinationsLabel: 'Destinos e disponibilidade de conteúdos',
+  openCountry: 'Explorar destino', comingSoon: 'Conteúdo em preparação',
   storyTitle: 'Cada viagem começa com curiosidade.', storyEyebrow: 'Uma porta para novos destinos',
   steps: [
     { title: 'Descobrir', text: 'Escolha um país e entre no seu mundo.' },
@@ -41,10 +41,10 @@ export default {
   legalPages: {
     'legal-notice': {
       title: 'Aviso legal',
-      intro: 'A VoyageGo é um portal de descoberta publicado no GitHub Pages. As informações seguintes descrevem apenas elementos verificáveis nesta versão do site.',
+      intro: 'A VoyageGo é uma plataforma mundial concebida para o Cloudflare Pages. As informações seguintes descrevem apenas elementos verificáveis nesta versão.',
       sections: [
         ['Entidade editora', 'A identidade jurídica, a forma, a morada e o responsável editorial da entidade operadora não estão confirmados nas informações disponíveis. Contacto geral: aetbconseil@gmail.com.'],
-        ['Alojamento', 'O site é publicado através do GitHub Pages. O fornecedor e os dados de contacto, GitHub, Inc., devem ser confirmados de acordo com os termos e as informações legais atualmente aplicáveis.'],
+        ['Alojamento', 'O destino técnico é Cloudflare Pages, Pages Functions e D1. A identidade completa do editor e os dados contratuais devem ser preenchidos antes da publicação.'],
         ['Propriedade intelectual', 'O nome, o logótipo, os textos e as imagens da VoyageGo estão protegidos de acordo com os direitos dos respetivos titulares. Para questões sobre conteúdos, escreva para aetbconseil@gmail.com.'],
       ],
     },
@@ -54,7 +54,7 @@ export default {
       sections: [
         ['Responsável pelo tratamento', 'A identidade jurídica da entidade responsável não está estabelecida nas informações disponíveis. Para questões sobre dados, escreva para aetbconseil@gmail.com.'],
         ['Preferência de idioma e conta', 'A escolha do idioma é guardada no armazenamento local com «voyagego-language». Quando as contas forem ativadas, o cliente de autenticação também utilizará o armazenamento local para manter a sessão. Este armazenamento é estritamente necessário para iniciar sessão; não é usado para publicidade nem medição de audiência. Antes da ativação, a entidade responsável deve especificar as finalidades, a base legal, a conservação, os destinatários, as transferências e os direitos aplicáveis.'],
-        ['Alojamento e registos técnicos', 'O GitHub Pages aloja o site. O fornecedor pode tratar dados técnicos de ligação, como o endereço IP, segundo os seus próprios termos e política de privacidade. A entidade editora deve confirmar os prazos, destinatários, transferências e procedimentos aplicáveis.'],
+        ['Alojamento e registos técnicos', 'O destino Cloudflare pode tratar dados técnicos necessários à segurança e à prestação do serviço. A entidade editora deve confirmar os prazos, destinatários, transferências e procedimentos aplicáveis.'],
         ['Direitos e conservação', 'Pode escrever para aetbconseil@gmail.com para qualquer pedido relativo a dados. Esta versão não conserva contas, porque o acesso a contas está desativado. Os direitos e as autoridades aplicáveis dependem da jurisdição pertinente.'],
       ],
     },
@@ -64,15 +64,15 @@ export default {
       sections: [
         ['Preferência de idioma', 'O idioma escolhido manualmente é guardado no armazenamento local do navegador com a chave «voyagego-language». Não é um cookie. Na ausência de escolha manual, é utilizado o idioma preferido do navegador.'],
         ['Gerir a sua escolha', 'Utilize o botão abaixo para apagar apenas a preferência de idioma guardada pela VoyageGo. Na visita seguinte, será utilizado o idioma do navegador, com o francês como opção de recurso.'],
-        ['Alojamento', 'O site é publicado no GitHub Pages. Consulte as informações de privacidade do GitHub para os tratamentos associados ao alojamento. Esta versão não ativa ferramentas opcionais de rastreamento ou publicidade.'],
+        ['Alojamento', 'O destino técnico é Cloudflare. Esta versão não ativa ferramentas opcionais de rastreamento ou publicidade. A informação final deve corresponder ao alojamento realmente aprovado.'],
       ], action: 'reset-language',
     },
     terms: {
       title: 'Termos de utilização',
-      intro: 'A VoyageGo apresenta portais nacionais independentes. Esta versão permite aceder à MarocoGO; a FrancoGO é indicada como brevemente disponível.',
+      intro: 'A VoyageGo é uma plataforma mundial única. Os países são conteúdos e capacidades ativados progressivamente no mesmo serviço.',
       sections: [
         ['Disponibilidade do serviço', 'O acesso à conta VoyageGo só funciona quando o fornecedor de identidade estiver configurado. Enquanto o serviço for apresentado como indisponível, não é criado qualquer registo, início de sessão ou sessão. Este portal não disponibiliza reservas nem planeamento de viagens.'],
-        ['Ligações a plataformas nacionais', 'A MarocoGO é um site independente, sujeito às suas próprias informações e condições. Ao abrir outro site, sai da VoyageGo. As plataformas assinaladas como brevemente disponíveis não são apresentadas como operacionais.'],
+        ['Destinos', 'Os países são apresentados na VoyageGo com estados separados de conteúdo e atividade comercial. Conteúdo publicado não significa que serviços ou reservas estejam operacionais.'],
         ['Entidade editora e lei aplicável', 'A identidade da entidade operadora e a jurisdição aplicável não estão estabelecidas com as informações disponíveis. Para questões sobre este portal, escreva para aetbconseil@gmail.com.'],
       ],
     },

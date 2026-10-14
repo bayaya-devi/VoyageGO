@@ -1,18 +1,22 @@
-const marocogoUrl = 'https://bayaya-devi.github.io/MarocoGO/';
-
-/** National portals are activated only after their destination URL is verified. */
+/** Curated worldwide destinations. Commercial services remain disabled until validated. */
 export const destinations = [
   {
     id: 'ma', iso2: 'MA', iso3: 'MAR',
     names: { fr: 'Maroc', en: 'Morocco', ar: 'المغرب', es: 'Marruecos', pt: 'Marrocos' },
-    url: marocogoUrl, status: 'available', region: { latitude: 31.8, longitude: -6.0 },
+    url: null, status: 'content', serviceStatus: 'inactive', region: { latitude: 31.8, longitude: -6.0 },
     visual: { accent: '#F3BD72' },
   },
   {
     id: 'fr', iso2: 'FR', iso3: 'FRA',
     names: { fr: 'France', en: 'France', ar: 'فرنسا', es: 'Francia', pt: 'França' },
-    url: null, status: 'coming_soon', region: { latitude: 46.5, longitude: 2.4 },
+    url: null, status: 'content', serviceStatus: 'inactive', region: { latitude: 46.5, longitude: 2.4 },
     visual: { accent: '#86C5D8' },
+  },
+  {
+    id: 'th', iso2: 'TH', iso3: 'THA',
+    names: { fr: 'Thaïlande', en: 'Thailand', ar: 'تايلاند', es: 'Tailandia', pt: 'Tailândia' },
+    url: null, status: 'content', serviceStatus: 'inactive', region: { latitude: 15.8, longitude: 100.9 },
+    visual: { accent: '#2F7768' },
   },
   {
     id: 'es', iso2: 'ES', iso3: 'ESP',

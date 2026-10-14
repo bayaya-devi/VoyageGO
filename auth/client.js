@@ -2,6 +2,7 @@ import { isValidPassword, normalizeEmail } from './validation.js';
 
 let clientPromise;
 let googleEnabled = false;
+let emailEnabled = false;
 
 function mapUser(user) {
   if (!user) return null;
@@ -26,6 +27,7 @@ async function getClient() {
       if (!response.ok) return null;
       const health = await response.json();
       googleEnabled = Boolean(health.googleEnabled);
+      emailEnabled = Boolean(health.emailEnabled);
       if (!health.accountsEnabled) return null;
       const { createAuthClient } = await import('../vendor/voyagego-auth-client.js');
       return createAuthClient({ baseURL: location.origin, fetchOptions: { credentials: 'same-origin' } });
@@ -36,6 +38,7 @@ async function getClient() {
 
 export async function getAuthClient() { return getClient(); }
 export async function isGoogleAuthEnabled() { await getClient(); return googleEnabled; }
+export async function isEmailAuthEnabled() { await getClient(); return emailEnabled; }
 
 export async function readSession() {
   const client = await getClient();
@@ -54,6 +57,27 @@ export async function signUp({ firstName, lastName, email, password, locale, red
     email: normalizeEmail(email), password, callbackURL: redirectTo,
   });
   return { data: { user: mapUser(result.data?.user), session: result.data?.token ? mapSession(result.data) : null }, error: result.error };
+}
+
+export async function verifyEmailOtp(email, otp) {
+  const client = await getClient();
+  if (!client || !emailEnabled) throw new Error('AUTH_UNAVAILABLE');
+  return client.emailOtp.verifyEmail({ email: normalizeEmail(email), otp: String(otp).replace(/\s/gu, '') });
+}
+
+export async function resendEmailOtp(email) {
+  const client = await getClient();
+  if (!client || !emailEnabled) throw new Error('AUTH_UNAVAILABLE');
+  return client.emailOtp.sendVerificationOtp({ email: normalizeEmail(email), type: 'email-verification' });
+}
+
+export async function setOptionalPassword(password) {
+  if (!isValidPassword(password)) throw new Error('INVALID_PASSWORD');
+  const response = await fetch(new URL('api/v1/me/password', document.baseURI), {
+    method: 'POST', credentials: 'same-origin', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ password }),
+  });
+  if (!response.ok) throw new Error((await response.json().catch(() => ({}))).error || 'PASSWORD_UPDATE_FAILED');
+  return response.json();
 }
 
 export async function signIn({ email, password }) {

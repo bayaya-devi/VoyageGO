@@ -9,7 +9,7 @@
     "dev": "wrangler pages dev",
     "deploy": "npm run build && wrangler pages deploy dist --project-name voyagego",
     "test:geo": "node --test tests/geography.test.js",
-    "test:unit": "node --test tests/geography.test.js tests/horizons.test.js",
+    "test:unit": "node --test tests/geography.test.js tests/horizons.test.js tests/platform.test.js",
     "test:e2e": "playwright test",
     "test:a11y": "playwright test --grep @a11y"
   },
@@ -18,7 +18,7 @@
     "@playwright/test": "1.64.0",
     "axe-core": "4.13.0",
     "esbuild": "0.28.2",
-    "sharp": "^0.35.5",
+    "sharp": "0.35.5",
     "three": "0.186.1",
     "wrangler": "4.150.0"
   },

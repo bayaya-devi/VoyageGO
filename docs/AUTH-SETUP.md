@@ -1,51 +1,54 @@
-# Comptes VoyageGo — Cloudflare Pages, D1 et Better Auth
+# Authentification VoyageGo sur Cloudflare
 
-## Architecture du dépôt
+VoyageGo utilise Better Auth dans Cloudflare Pages Functions et la base D1 `voyagego-accounts`. Une même identité porte les rôles voyageur et prestataire.
 
-- Le frontend statique est construit dans `dist/` pour Cloudflare Pages.
-- Les routes `functions/api/auth/[[route]].js` et `functions/api/health.js` s’exécutent sur Pages Functions, sur la même origine que le site.
-- Better Auth 1.7.7 gère les comptes, le hachage des mots de passe, les sessions, la vérification e-mail, les liens de réinitialisation, Google OAuth facultatif et les limites de requêtes.
-- La base D1 dédiée est `voyagego-accounts`; son schéma versionné se trouve dans `migrations/`.
-- Les e-mails sont envoyés par l’API transactionnelle Brevo uniquement depuis le serveur. Aucun secret ne va au navigateur.
+## Variables et secrets
 
-Les inscriptions restent désactivées tant que D1, le secret Better Auth et un expéditeur Brevo complet ne sont pas disponibles. Le bouton Google n’apparaît que lorsque les deux secrets OAuth sont présents. Aucun mode de démonstration ou session locale n’est fourni.
+Obligatoires :
 
-## Secrets Cloudflare
+- `BETTER_AUTH_SECRET` : secret aléatoire long, défini avec `wrangler pages secret put`.
+- `BETTER_AUTH_URL` et `PUBLIC_SITE_URL` : URL HTTPS canonique du site Cloudflare Pages ou du domaine personnalisé.
 
-Depuis la racine du dépôt, ajouter les secrets avec Wrangler (les valeurs ne sont pas inscrites dans le code) :
+Pour l’inscription e-mail OTP et la récupération :
+
+- `BREVO_API_KEY`
+- `BREVO_SENDER_EMAIL`
+- `BREVO_SENDER_NAME`
+
+L’adresse expéditrice doit appartenir à un domaine réellement vérifié chez Brevo. Sans ces trois valeurs, l’interface annonce que l’e-mail transactionnel est indisponible et l’API refuse l’envoi.
+
+Pour Google :
+
+- `GOOGLE_CLIENT_ID`
+- `GOOGLE_CLIENT_SECRET`
+
+L’URI de redirection à déclarer chez Google est `https://DOMAINE/api/auth/callback/google`. Sans les deux valeurs, le bouton Google reste indisponible.
+
+Ne jamais placer de secret dans Git, `.dev.vars.example`, le frontend ou une capture d’écran.
+
+## Base D1
+
+Après validation et juste avant le premier déploiement :
 
 ```powershell
-npx wrangler pages secret put BETTER_AUTH_SECRET --project-name voyagego
-npx wrangler pages secret put BREVO_API_KEY --project-name voyagego
-npx wrangler pages secret put BREVO_SENDER_EMAIL --project-name voyagego
-npx wrangler pages secret put BREVO_SENDER_NAME --project-name voyagego
-```
-
-`BETTER_AUTH_SECRET` doit contenir au moins 32 caractères aléatoires. `BREVO_SENDER_EMAIL` doit être un expéditeur autorisé et le domaine d’envoi doit avoir été authentifié dans Brevo. Ne pas copier de clé API dans `.env`, `wrangler.toml` ou les variables publiques Pages.
-
-Google est facultatif : seulement après création et validation de l’application OAuth Google, ajouter `GOOGLE_CLIENT_ID` et `GOOGLE_CLIENT_SECRET` avec `wrangler pages secret put`. L’URI de retour Better Auth est `https://<origine-de-production>/api/auth/callback/google`.
-
-## Migrations et déploiement
-
-Vérifier l’état local puis appliquer les migrations à distance uniquement à la base VoyageGo :
-
-```powershell
-npm ci
-npm run build
 npx wrangler d1 migrations apply voyagego-accounts --remote
-npx wrangler --config wrangler.toml pages project list
-npm run deploy
 ```
 
-Le projet Pages se nomme `voyagego`. Avant de déployer une nouvelle migration, sauvegarder la base depuis Cloudflare et ne jamais réinitialiser une base existante.
+Cette commande ne doit pas être exécutée avant l’accord sur les pays pilotes et le périmètre de production. La migration `0001` crée Better Auth ; `0002` crée le domaine mondial.
 
-Pour le développement local, créer un fichier ignoré `.dev.vars` avec un secret local aléatoire et `BETTER_AUTH_URL=http://localhost:8788`. Appliquer d’abord les migrations en local, puis lancer `npm run dev`. Ne jamais réutiliser le secret local en production.
+## Flux
 
-## Sécurité et mise en service
+- E-mail : création → OTP à six chiffres, valable dix minutes, cinq tentatives → session.
+- Google : OAuth → même compte si l’adresse est identique et vérifiée → onboarding.
+- Mot de passe facultatif après Google : session âgée de moins de dix minutes requise.
+- Cookies : `HttpOnly`, `Secure` en HTTPS, `SameSite=Lax`, même origine Cloudflare.
 
-- Les mots de passe ont une longueur serveur de 15 à 128 caractères; aucune règle de composition arbitraire n’est imposée.
-- Les sessions sont stockées dans D1 et utilisent des cookies `HttpOnly`, `Secure` en HTTPS, `SameSite=Lax` et une vérification d’origine pour les redirections.
-- Les limites Better Auth sont stockées dans D1 et renforcées sur les routes d’inscription, de connexion et de récupération.
-- Les réponses de récupération et d’inscription sont génériques pour réduire l’énumération d’adresses.
-- Les migrations de l’ancien prototype Supabase ne sont pas appliquées à Cloudflare et ne sont pas réutilisées.
-- Le lancement des comptes en production doit attendre l’authentification SPF/DKIM de l’expéditeur, un test réel de confirmation et de récupération, et la finalisation des informations de confidentialité/éditeur requises pour l’exploitant.
+Le endpoint `/api/health` publie uniquement des indicateurs booléens (`accountsEnabled`, `emailEnabled`, `googleEnabled`, `platformApiEnabled`) et jamais la valeur des secrets.
+
+## Vérification avant production
+
+1. Vérifier le domaine d’envoi et les modèles dans les cinq langues.
+2. Configurer les URI Google exactes de production.
+3. Appliquer les migrations distantes.
+4. Tester inscription, OTP erroné/expiré, renvoi, connexion, récupération, Google, liaison de compte et déconnexion.
+5. Vérifier les cookies, les limites de débit et l’absence de données sensibles dans les journaux.

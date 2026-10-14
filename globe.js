@@ -108,11 +108,13 @@ export async function mountGlobe(copy) {
     const iso3 = properties.iso3;
     const destination = destinationByIso.get(iso3);
     const name = translatedName(feature, copy.lang);
-    const available = destination?.status === 'available' && destination.url;
+    const available = destination?.status === 'content';
     const flag = flagFor(properties.iso2);
     const status = available ? copy.available : copy.comingSoon;
+    const exploreUrl = new URL(`${copy.lang}/`, document.baseURI);
+    exploreUrl.search = new URLSearchParams({ page: 'explore', country: properties.iso2 });
     const action = available
-      ? `<a class="country-action" href="${destination.url}">${copy.discover}</a>`
+      ? `<a class="country-action" href="${exploreUrl.href}">${copy.discover}</a>`
       : `<button class="country-action" type="button" disabled>${copy.comingSoon}</button>`;
     const visual = destinationVisuals[iso3];
     const credit = visual ? `<a class="photo-credit" href="${visual.source}" target="_blank" rel="noreferrer">${copy.photoCredit}: ${visual.credit}</a>` : '';
@@ -152,7 +154,7 @@ export async function mountGlobe(copy) {
     const geometry = new THREE.BufferGeometry();
     geometry.setAttribute('position', new THREE.Float32BufferAttribute(vertices, 3));
     const destination = destinationByIso.get(feature.properties.iso3);
-    selectedOutline = new THREE.LineSegments(geometry, new THREE.LineBasicMaterial({ color: destination?.status === 'available' ? 0xf3bd72 : 0x86c5d8, transparent: true, opacity: 0.95 }));
+    selectedOutline = new THREE.LineSegments(geometry, new THREE.LineBasicMaterial({ color: destination?.status === 'content' ? 0xf3bd72 : 0x86c5d8, transparent: true, opacity: 0.95 }));
     globe.add(selectedOutline);
   };
 

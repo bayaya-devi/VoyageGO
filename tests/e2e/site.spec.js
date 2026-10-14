@@ -3,11 +3,11 @@ import AxeBuilder from '@axe-core/playwright';
 import { isValidPassword } from '../../auth/validation.js';
 
 const locales = [
-  { code: 'fr', tagline: 'LE MONDE VOUS ATTEND', direction: 'ltr', cookieTitle: 'Cookies et préférences', soon: 'Bientôt disponible' },
-  { code: 'en', tagline: 'THE WORLD IS WAITING', direction: 'ltr', cookieTitle: 'Cookies and preferences', soon: 'Coming soon' },
-  { code: 'ar', tagline: 'العالم في انتظارك', direction: 'rtl', cookieTitle: 'ملفات الارتباط والتفضيلات', soon: 'قريبًا' },
-  { code: 'es', tagline: 'EL MUNDO TE ESPERA', direction: 'ltr', cookieTitle: 'Cookies y preferencias', soon: 'Próximamente' },
-  { code: 'pt', tagline: 'O MUNDO ESPERA POR SI', direction: 'ltr', cookieTitle: 'Cookies e preferências', soon: 'Em breve' },
+  { code: 'fr', tagline: 'LE MONDE VOUS ATTEND', direction: 'ltr', cookieTitle: 'Cookies et préférences', content: 'Contenu disponible' },
+  { code: 'en', tagline: 'THE WORLD IS WAITING', direction: 'ltr', cookieTitle: 'Cookies and preferences', content: 'Content available' },
+  { code: 'ar', tagline: 'العالم في انتظارك', direction: 'rtl', cookieTitle: 'ملفات الارتباط والتفضيلات', content: 'المحتوى متاح' },
+  { code: 'es', tagline: 'EL MUNDO TE ESPERA', direction: 'ltr', cookieTitle: 'Cookies y preferencias', content: 'Contenido disponible' },
+  { code: 'pt', tagline: 'O MUNDO ESPERA POR SI', direction: 'ltr', cookieTitle: 'Cookies e preferências', content: 'Conteúdo disponível' },
 ];
 
 const viewports = [
@@ -112,13 +112,13 @@ for (const locale of locales) {
 
       await page.locator('#country-picker').selectOption('FRA');
       await expect(page.locator('#country-popup')).toBeVisible();
-      await expect(page.locator('#country-popup')).toContainText(locale.soon);
-      await expect(page.locator('#country-popup .country-action')).toBeDisabled();
+      await expect(page.locator('#country-popup')).toContainText(locale.content);
+      await expect(page.locator('#country-popup .country-action')).toHaveAttribute('href', new RegExp(`/${locale.code}/\\?page=explore&country=FR`));
       await expect(page.locator('#destination-visual')).toHaveAttribute('data-country', 'FRA');
       await expect.poll(() => page.locator('#destination-visual img.is-active').evaluate((image) => image.naturalWidth)).toBeGreaterThan(0);
 
       await page.locator('#country-picker').selectOption('MAR');
-      await expect(page.locator('#country-popup .country-action')).toHaveAttribute('href', 'https://bayaya-devi.github.io/MarocoGO/');
+      await expect(page.locator('#country-popup .country-action')).toHaveAttribute('href', new RegExp(`/${locale.code}/\\?page=explore&country=MA`));
       await expect(page.locator('#country-popup')).toContainText(locale.code === 'ar' ? 'المغرب' : locale.code === 'fr' ? 'Maroc' : locale.code === 'es' ? 'Marruecos' : locale.code === 'pt' ? 'Marrocos' : 'Morocco');
 
       await page.evaluate(() => window.scrollTo(0, document.querySelector('#journey-track').offsetTop + (document.querySelector('#journey-track').offsetHeight - innerHeight) * .45));

@@ -6,6 +6,14 @@ const copy = {
   pt: { verify: 'Confirma o teu endereço de e-mail — VoyageGo', reset: 'Redefine a tua palavra-passe VoyageGo', introVerify: 'Confirma o teu endereço para ativar a tua conta VoyageGo.', introReset: 'Foi pedida a redefinição da palavra-passe da tua conta VoyageGo.', actionVerify: 'Confirmar o meu e-mail', actionReset: 'Escolher uma nova palavra-passe', ignore: 'Se não fizeste este pedido, podes ignorar esta mensagem.', expiry: 'Esta ligação de utilização única expira dentro de uma hora.', signoff: 'A equipa VoyageGo' },
 };
 
+const otpCopy = {
+  fr: { subject: 'Votre code VoyageGo', intro: 'Saisissez ce code pour continuer votre inscription VoyageGo.', reset: 'Saisissez ce code pour réinitialiser votre mot de passe VoyageGo.', expiry: 'Ce code expire dans dix minutes.' },
+  en: { subject: 'Your VoyageGo code', intro: 'Enter this code to continue your VoyageGo registration.', reset: 'Enter this code to reset your VoyageGo password.', expiry: 'This code expires in ten minutes.' },
+  ar: { subject: 'رمز VoyageGo الخاص بك', intro: 'أدخل هذا الرمز لمتابعة التسجيل في VoyageGo.', reset: 'أدخل هذا الرمز لإعادة تعيين كلمة مرور VoyageGo.', expiry: 'تنتهي صلاحية هذا الرمز خلال عشر دقائق.' },
+  es: { subject: 'Tu código de VoyageGo', intro: 'Introduce este código para continuar tu registro en VoyageGo.', reset: 'Introduce este código para restablecer tu contraseña de VoyageGo.', expiry: 'Este código caduca en diez minutos.' },
+  pt: { subject: 'O teu código VoyageGo', intro: 'Introduz este código para continuar o registo no VoyageGo.', reset: 'Introduz este código para redefinir a palavra-passe do VoyageGo.', expiry: 'Este código expira dentro de dez minutos.' },
+};
+
 function escapeHtml(value) {
   return String(value).replace(/[&<>"']/g, (char) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[char]);
 }
@@ -30,6 +38,20 @@ export async function sendAuthEmail(env, { to, url, locale = 'fr', type }) {
       to: [{ email: to }], subject, htmlContent,
       textContent: `${intro}\n\n${action}: ${url}\n\n${words.expiry} ${words.ignore}\n${words.signoff}`,
     }),
+  });
+  if (!response.ok) throw new Error(`BREVO_SEND_FAILED_${response.status}`);
+}
+
+export async function sendAuthOtp(env, { to, otp, type, locale = 'fr' }) {
+  if (!env.BREVO_API_KEY || !env.BREVO_SENDER_EMAIL || !env.BREVO_SENDER_NAME) throw new Error('TRANSACTIONAL_EMAIL_NOT_CONFIGURED');
+  const lang = otpCopy[locale] ? locale : 'fr';
+  const words = otpCopy[lang];
+  const intro = type === 'forget-password' ? words.reset : words.intro;
+  const htmlContent = `<!doctype html><html lang="${lang}"${lang === 'ar' ? ' dir="rtl"' : ''}><body style="margin:0;background:#f2f5f2;color:#183a35;font-family:Arial,sans-serif"><main style="max-width:560px;margin:32px auto;padding:36px 28px;background:#fff;border-radius:20px"><p style="color:#2f7768;font-weight:700">VoyageGo</p><h1 style="font-size:24px">${escapeHtml(words.subject)}</h1><p>${escapeHtml(intro)}</p><p style="margin:28px 0;font-size:34px;letter-spacing:.22em;font-weight:700" dir="ltr">${escapeHtml(otp)}</p><p>${escapeHtml(words.expiry)}</p></main></body></html>`;
+  const response = await fetch('https://api.brevo.com/v3/smtp/email', {
+    method: 'POST',
+    headers: { 'api-key': env.BREVO_API_KEY, 'content-type': 'application/json', accept: 'application/json' },
+    body: JSON.stringify({ sender: { email: env.BREVO_SENDER_EMAIL, name: env.BREVO_SENDER_NAME }, to: [{ email: to }], subject: words.subject, htmlContent, textContent: `${intro}\n\n${otp}\n\n${words.expiry}` }),
   });
   if (!response.ok) throw new Error(`BREVO_SEND_FAILED_${response.status}`);
 }

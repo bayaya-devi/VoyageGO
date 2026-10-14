@@ -2,12 +2,12 @@ export default {
   lang: 'en', direction: 'ltr', languageName: 'English',
   languageNames: { fr: 'Français', ar: 'العربية', en: 'English', es: 'Español', pt: 'Português' },
   title: 'Your next discovery starts here.',
-  description: 'VoyageGo opens the door to national destinations. Choose a country and discover its world.',
+  description: 'VoyageGo brings discovery, planning and travel journals together in one worldwide platform.',
   tag: 'THE WORLD IS WAITING', intro: 'One world to explore, country by country.',
   cta: 'Start your journey', scroll: 'Scroll to explore',
   mapEyebrow: 'A world of possibilities', mapTitle: 'The world, within reach', mapTitleEmphasis: 'Choose', mapTitleRest: 'your next destination.',
   mapIntro: 'Choose a country on the map.', countryInvitation: 'Let this landscape open the first page of your next journey.', photoCredit: 'Photograph',
-  comingSoonMessage: 'This national platform will be announced when it is ready.',
+  comingSoonMessage: 'This destination is visible on the globe and its content is being prepared.',
   mapLabel: 'Interactive Earth globe with global topographic relief',
   mapUnavailable: 'The globe could not load. Choose a country from the list or the fallback map.',
   mapAttribution: 'NOAA ETOPO 2022 global relief · Natural Earth boundaries',
@@ -15,9 +15,9 @@ export default {
   countryDetails: 'Selected destination', mapHint: 'Rotate the globe and select a country',
   globeLoading: 'Preparing the globe…', globeReady: 'The globe is ready. Rotate it or select a country.',
   reliefError: 'Detailed relief is temporarily unavailable.', fallbackMessage: 'Interactive fallback map enabled.',
-  available: 'Available', discover: 'Discover',
-  destinationsLabel: 'Destinations and platform availability',
-  openCountry: 'Discover MarocoGO', comingSoon: 'Coming soon',
+  available: 'Content available', discover: 'Explore in VoyageGo',
+  destinationsLabel: 'Destinations and content availability',
+  openCountry: 'Explore destination', comingSoon: 'Content in preparation',
   storyTitle: 'Every journey begins with curiosity.',
   storyEyebrow: 'A doorway to new destinations',
   steps: [
@@ -43,10 +43,10 @@ export default {
   legalPages: {
     'legal-notice': {
       title: 'Legal notice',
-      intro: 'VoyageGo is a discovery portal published on GitHub Pages. The information below describes only details verifiable in this version of the site.',
+      intro: 'VoyageGo is a worldwide platform designed for Cloudflare Pages. The information below describes only details verifiable in this version.',
       sections: [
         ['Website publisher', 'The operating entity’s legal identity, form, address and publishing lead are not confirmed in the available project information. General contact: aetbconseil@gmail.com.'],
-        ['Hosting', 'This version of the website is published with GitHub Pages. The provider’s terms and information apply to its service.'],
+        ['Hosting', 'The technical target is Cloudflare Pages, Pages Functions and D1. The publisher’s full identity and contractual hosting details must be completed before publication.'],
         ['Intellectual property', 'The VoyageGo name, logo, text and imagery are protected according to the rights held by their owners. For content enquiries, contact aetbconseil@gmail.com.'],
       ],
     },
@@ -56,7 +56,7 @@ export default {
       sections: [
         ['Data controller', 'The legal identity of the responsible entity is not established in the available project information. For data enquiries, contact aetbconseil@gmail.com.'],
         ['Language preference and account', 'Your language choice is stored in local storage under “voyagego-language”. When accounts are enabled, the authentication client will also use local storage to persist the session. This storage is strictly necessary for sign-in and is not used for advertising or audience measurement. Before activation, the operator must specify purposes, legal basis, retention, recipients, transfers, and applicable rights.'],
-        ['Hosting and technical logs', 'GitHub Pages hosts the site. The provider may process technical connection data, such as IP addresses, under its own terms and privacy policy. Before publication, the operator must confirm applicable retention periods, recipients, transfers and procedures.'],
+        ['Hosting and technical logs', 'The Cloudflare target may process technical data required for security and service delivery. Before publication, the operator must confirm applicable retention periods, recipients, transfers and procedures.'],
         ['Your rights and retention', 'You may contact aetbconseil@gmail.com with a data request. No account retention period applies to this version because account access is disabled. Applicable rights and authorities depend on the relevant jurisdiction.'],
       ],
     },
@@ -66,15 +66,15 @@ export default {
       sections: [
         ['Language preference', 'A manually selected language is saved in browser local storage under the key “voyagego-language”. It is not a cookie. If there is no manual choice, the browser’s preferred language is used.'],
         ['Manage your choice', 'Use the button below to clear only the language preference saved by VoyageGo. The next visit will follow your browser language, with French as the fallback.'],
-        ['Hosting', 'The site is published on GitHub Pages. Consult GitHub’s privacy information for processing related to its hosting service. This VoyageGo version enables no optional tracking or advertising tool.'],
+        ['Hosting', 'The technical target is Cloudflare. This VoyageGo version enables no optional tracking or advertising tool. Final information must match the deployment that is actually approved.'],
       ], action: 'reset-language',
     },
     terms: {
       title: 'Terms of use',
-      intro: 'VoyageGo introduces independent national portals. This version links to MarocoGO; FrancoGO is marked as coming soon.',
+      intro: 'VoyageGo is one worldwide platform. Countries are content and capabilities progressively enabled within the same service.',
       sections: [
         ['Service availability', 'VoyageGo account access works only when the identity provider is configured. While the service is shown as unavailable, no registration, sign-in, or session is created. This portal does not offer bookings or trip planning.'],
-        ['Links to national platforms', 'MarocoGO is a separate website governed by its own information and terms. A link to another website takes you away from VoyageGo. Platforms marked as coming soon are not represented as operational.'],
+        ['Destinations', 'Countries are shown inside VoyageGo with separate content and commercial states. Published content does not mean that services or bookings are operational.'],
         ['Publisher and governing law', 'The operator identity and applicable jurisdiction are not established by the available information. For questions about this portal, contact aetbconseil@gmail.com.'],
       ],
     },
