@@ -1,6 +1,8 @@
 import { readSession, resendEmailOtp, setOptionalPassword, verifyEmailOtp } from '../auth/client.js';
 import { destinations as legacyDestinations } from '../data/countries.js';
 import { platformRequest, readHealth } from './api.js';
+import { countryMarkup } from './country-ui.js';
+import { getAfricaCountry } from '../data/africa-countries.js';
 
 const draftKey = 'voyagego-trip-draft-v1';
 const onboardingKey = 'voyagego-onboarding-v1';
@@ -8,8 +10,17 @@ const favoriteIso = ['MA','FR','TH','JP','BR','CA','IT','PT'];
 const interestIds = ['nature','mountains','beaches','adventure','food','culture','heritage','cities','relax','road_trips','family','sports','local','budget','premium'];
 
 function escapeHtml(value) { return String(value ?? '').replace(/[&<>"']/g, (c) => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' })[c]); }
+function countryContext() {
+  const segments = location.pathname.split('/').filter(Boolean);
+  const localeIndex = segments.findIndex((segment) => ['fr','ar','en','es','pt'].includes(segment));
+  return localeIndex > 0 ? getAfricaCountry(segments[localeIndex - 1]) : null;
+}
+function countryRootUrl(locale) {
+  const country = countryContext();
+  return new URL(country ? `${country.id}/${locale}/` : `${locale}/`, document.baseURI);
+}
 function pageUrl(locale, page, extra = {}) {
-  const url = new URL(`${locale}/`, document.baseURI);
+  const url = countryRootUrl(locale);
   url.search = new URLSearchParams({ page, ...extra });
   return url.href;
 }
@@ -44,7 +55,7 @@ function prepareMarkup(locale,t){
 
 async function exploreMarkup(locale,t){
   let data=[];
-  try { data=await platformRequest(`destinations?locale=${locale}&limit=50`); } catch {
+  try { data=await platformRequest(`destinations?locale=${locale}&limit=100`); } catch {
     data=legacyDestinations.map((item)=>({iso2:item.iso2,iso3:item.iso3,name:item.names[locale],description:'',contentStatus:item.iso3==='MAR'||item.iso3==='FRA'?'published':'preparing',serviceStatus:'inactive',capabilities:{information:item.iso3==='MAR'}}));
   }
   return frame(locale,t,'explore',`<section class="platform-hero"><p class="eyebrow">${escapeHtml(t.explore.eyebrow)}</p><h1>${escapeHtml(t.explore.title)}</h1><p>${escapeHtml(t.explore.intro)}</p><label class="world-search"><span class="sr-only">${escapeHtml(t.explore.search)}</span><input id="destination-search" type="search" placeholder="${escapeHtml(t.explore.search)}" autocomplete="off"></label></section>
@@ -121,14 +132,15 @@ function bindBookings(t){document.querySelectorAll('[data-booking][data-decision
 export async function renderPlatform(app, copy, route) {
   const { default:t }=await import(`./i18n/${copy.lang}.js`);
   const page=route.type;
-  if(page==='prepare')app.insertAdjacentHTML('beforeend',prepareMarkup(copy.lang,t));
+  if(page==='country')app.insertAdjacentHTML('beforeend',countryMarkup(route.country,copy.lang,(target)=>pageUrl(copy.lang,target)));
+  else if(page==='prepare')app.insertAdjacentHTML('beforeend',prepareMarkup(copy.lang,t));
   else if(page==='explore')app.insertAdjacentHTML('beforeend',await exploreMarkup(copy.lang,t));
   else if(page==='profile')app.insertAdjacentHTML('beforeend',await profileMarkup(copy.lang,t));
   else if(page==='onboarding'){const health=await readHealth();const {session}=await readSession();const step=Math.min(8,Math.max(2,Number(route.step)||3));app.insertAdjacentHTML('beforeend',onboardingMarkup(copy.lang,t,step,health,session));await bindOnboarding(copy.lang,t,step);}
   else if(page==='provider')app.insertAdjacentHTML('beforeend',await providerMarkup(copy.lang,t));
   else if(page==='listing')app.insertAdjacentHTML('beforeend',await listingMarkup(copy.lang,t));
   else if(page==='bookings')app.insertAdjacentHTML('beforeend',await bookingsMarkup(copy.lang,t));
-  document.querySelector('[data-platform-home]')?.addEventListener('click',(event)=>{event.preventDefault();location.assign(new URL(`${copy.lang}/`,document.baseURI));});
+  document.querySelector('[data-platform-home]')?.addEventListener('click',(event)=>{event.preventDefault();location.assign(countryRootUrl(copy.lang));});
   if(page==='prepare')bindPrepare(t); if(page==='explore')bindExplore(); if(page==='profile')await bindProfile(t); if(page==='provider')await bindProvider(t); if(page==='listing')await bindListing(t); if(page==='bookings')bindBookings(t);
   document.querySelector('#main-content')?.focus({preventScroll:true});
   return ()=>{};

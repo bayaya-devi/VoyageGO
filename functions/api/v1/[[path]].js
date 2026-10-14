@@ -5,7 +5,7 @@ import {
 import { createAuth } from '../../_shared/auth.js';
 
 const LOCALES = ['fr', 'ar', 'en', 'es', 'pt'];
-const CURRENCIES = ['EUR', 'USD', 'MAD', 'GBP', 'CAD', 'AUD', 'JPY', 'CHF'];
+const CURRENCIES = ['EUR','USD','MAD','GBP','CAD','AUD','JPY','CHF','DZD','TND','LYD','EGP','MRU','SDG','XOF','NGN','GHS','GNF','GMD','LRD','SLE','CVE','XAF','CDF','STN','ETB','ERN','DJF','SOS','KES','UGX','RWF','BIF','TZS','SSP','SCR','KMF','MUR','MGA','ZAR','NAD','BWP','ZWG','ZMW','AOA','MZN','MWK','LSL','SZL'];
 const INTERESTS = ['nature','mountains','beaches','adventure','food','culture','heritage','cities','relax','road_trips','family','sports','local','budget','premium'];
 const ACTIVITY_TYPES = ['private_lodging','hotel','guide','activity','transport','vehicle_rental','other'];
 const LISTING_TYPES = ['lodging','hotel','guide','activity','transport','vehicle_rental','other'];
@@ -34,10 +34,10 @@ function profileResult(row) {
 async function listDestinations(env, request) {
   const url = new URL(request.url);
   const locale = LOCALES.includes(url.searchParams.get('locale')) ? url.searchParams.get('locale') : 'fr';
-  const result = await env.DB.prepare(`SELECT iso2, iso3, names, summary, latitude, longitude, contentStatus, serviceStatus, capabilities, accent, updatedAt
+  const result = await env.DB.prepare(`SELECT iso2, iso3, names, summary, latitude, longitude, contentStatus, serviceStatus, capabilities, accent, updatedAt, regionGroup, currencyCode, timeZones, palette, validationStatus, sourceRefs
     FROM destination ORDER BY CASE contentStatus WHEN 'published' THEN 0 ELSE 1 END, iso2 LIMIT ?`).bind(pageLimit(url)).all();
   return json({ data: result.results.map((row) => {
-    const item = parseJsonColumns(row, ['names','summary','capabilities']);
+    const item = parseJsonColumns(row, ['names','summary','capabilities','timeZones','palette','sourceRefs']);
     return { ...item, name: item.names?.[locale] || item.names?.en || item.iso2, description: item.summary?.[locale] || '' };
   }) }, 200, { 'cache-control': 'public, max-age=300' });
 }

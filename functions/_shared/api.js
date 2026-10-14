@@ -103,5 +103,5 @@ export function parseJsonColumns(row, columns) {
 
 export function pageLimit(url) {
   const raw = Number(url.searchParams.get('limit') || 20);
-  return Number.isInteger(raw) ? Math.min(50, Math.max(1, raw)) : 20;
+  return Number.isInteger(raw) ? Math.min(100, Math.max(1, raw)) : 20;
 }

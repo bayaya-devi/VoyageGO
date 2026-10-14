@@ -1,5 +1,6 @@
 import * as THREE from './vendor/three.module.js';
 import { destinations, destinationVisuals, reliefTextureUrl, worldDataUrl } from './data/countries.js';
+import { getAfricaCountry } from './data/africa-countries.js';
 import { cartesianToGeographic, featureAtGeographicPoint, geographicToCartesian, ringsIn } from './geography/spherical.js';
 import { applyTerritoryPolicy } from './geography/territory-policy.js';
 
@@ -109,11 +110,12 @@ export async function mountGlobe(copy) {
     const iso3 = properties.iso3;
     const destination = destinationByIso.get(iso3);
     const name = translatedName(feature, copy.lang);
-    const available = destination?.status === 'content';
+    const africaCountry = getAfricaCountry(properties.iso2);
+    const available = Boolean(africaCountry || destination?.status === 'content');
     const flag = flagFor(properties.iso2);
     const status = available ? copy.available : copy.comingSoon;
-    const exploreUrl = new URL(`${copy.lang}/`, document.baseURI);
-    exploreUrl.search = new URLSearchParams({ page: 'explore', country: properties.iso2 });
+    const exploreUrl = new URL(africaCountry ? `${africaCountry.id}/${copy.lang}/` : `${copy.lang}/`, document.baseURI);
+    if (!africaCountry) exploreUrl.search = new URLSearchParams({ page: 'explore', country: properties.iso2 });
     const action = available
       ? `<a class="country-action" href="${exploreUrl.href}">${copy.discover}</a>`
       : `<button class="country-action" type="button" disabled>${copy.comingSoon}</button>`;

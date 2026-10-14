@@ -1,4 +1,5 @@
 import { destinations, localeCodes } from './data/countries.js';
+import { getAfricaCountry } from './data/africa-countries.js';
 import { mountHorizon } from './horizons.js';
 
 const app = document.querySelector('#app');
@@ -33,6 +34,12 @@ function localeFromPath() {
   return localeCodes.includes(candidate) ? candidate : null;
 }
 
+function countryFromPath() {
+  const segments = location.pathname.split('/').filter(Boolean);
+  const localeIndex = segments.findIndex((segment) => localeCodes.includes(segment));
+  return localeIndex > 0 ? getAfricaCountry(segments[localeIndex - 1]) : null;
+}
+
 function preferredLocale() {
   try {
     const saved = localStorage.getItem(preferenceKey);
@@ -53,10 +60,13 @@ function currentPage() {
   if (['prepare','explore','profile','provider','listing','bookings','onboarding'].includes(params.get('page'))) {
     return { type: params.get('page'), step: params.get('step'), scope: params.get('scope') };
   }
-  return null;
+  const country = countryFromPath();
+  return country ? { type: 'country', country } : null;
 }
 
-function homeUrl(locale) { return new URL(`${locale}/`, new URL('./', document.baseURI)).href; }
+function homeUrl(locale, country = countryFromPath()) {
+  return new URL(country ? `${country.id}/${locale}/` : `${locale}/`, new URL('./', document.baseURI)).href;
+}
 function legalUrl(locale, docId) {
   const url = new URL(homeUrl(locale));
   url.search = new URLSearchParams({ page: 'legal', doc: docId });
@@ -181,16 +191,16 @@ function setMetadata(copy, route) {
   const platform = route && !page && !account ? route.type : null;
   document.documentElement.lang = copy.lang;
   document.documentElement.dir = copy.direction;
-  const platformTitle = platform ? ({prepare:copy.steps[1].title,explore:copy.steps[2].title,profile:copy.accountLabel,provider:'VoyageGo',listing:'VoyageGo',bookings:'VoyageGo',onboarding:'VoyageGo'}[platform]) : null;
+  const platformTitle = platform ? ({country:route.country?.names[copy.lang],prepare:copy.steps[1].title,explore:copy.steps[2].title,profile:copy.accountLabel,provider:'VoyageGo',listing:'VoyageGo',bookings:'VoyageGo',onboarding:'VoyageGo'}[platform]) : null;
   document.title = page ? `${page.title} — VoyageGo` : account ? `${copy.accountTitle} — VoyageGo` : platformTitle ? `${platformTitle} — VoyageGo` : `VoyageGo — ${copy.title}`;
   const description = page?.intro || (account ? copy.accountDescription : copy.description);
   const meta = document.querySelector('meta[name="description"]');
   if (meta) meta.content = description;
   let robots = document.querySelector('meta[name="robots"]');
   if (!robots) { robots = document.createElement('meta'); robots.name = 'robots'; document.head.append(robots); }
-  robots.content = page || account || ['profile','provider','listing','bookings','onboarding'].includes(platform) ? 'noindex,follow' : 'index,follow';
+  robots.content = page || account || (route?.type === 'country' && route.country.contentStatus !== 'published') || ['profile','provider','listing','bookings','onboarding'].includes(platform) ? 'noindex,follow' : 'index,follow';
   const canonical = document.querySelector('link[rel="canonical"]') || document.head.appendChild(Object.assign(document.createElement('link'), { rel: 'canonical' }));
-  canonical.href = page ? legalUrl(copy.lang, route.docId) : platform ? platformUrl(copy.lang, platform) : homeUrl(copy.lang);
+  canonical.href = page ? legalUrl(copy.lang, route.docId) : route?.type === 'country' ? homeUrl(copy.lang, route.country) : platform ? platformUrl(copy.lang, platform) : homeUrl(copy.lang);
   const updateMeta = (selector, content) => {
     let tag = document.querySelector(selector);
     if (!tag) {
@@ -207,10 +217,10 @@ function setMetadata(copy, route) {
   localeCodes.forEach((locale) => {
     let alternate = document.querySelector(`link[hreflang="${locale}"]`);
     if (!alternate) { alternate = document.createElement('link'); alternate.rel = 'alternate'; alternate.hreflang = locale; document.head.append(alternate); }
-    alternate.href = homeUrl(locale);
+    alternate.href = homeUrl(locale, route?.country || undefined);
   });
   const xDefault = document.querySelector('link[hreflang="x-default"]');
-  if (xDefault) xDefault.href = new URL('./', document.baseURI).href;
+  if (xDefault) xDefault.href = route?.country ? homeUrl('fr', route.country) : new URL('./', document.baseURI).href;
 }
 
 function announce(message) {
@@ -342,6 +352,15 @@ async function render() {
   if (generation !== renderGeneration) return;
   if (copy.lang !== locale) throw new Error(`Locale module mismatch: ${locale}`);
   const page = currentPage();
+  const activeCountry = page?.country || countryFromPath();
+  document.documentElement.toggleAttribute('data-country-experience', Boolean(activeCountry));
+  if (activeCountry) {
+    document.documentElement.style.setProperty('--country-primary', activeCountry.palette.primary);
+    document.documentElement.style.setProperty('--country-secondary', activeCountry.palette.secondary);
+    document.documentElement.style.setProperty('--country-accent', activeCountry.palette.accent);
+  } else {
+    ['--country-primary','--country-secondary','--country-accent'].forEach((name) => document.documentElement.style.removeProperty(name));
+  }
   setMetadata(copy, page);
   if (page?.type === 'account') {
     app.innerHTML = header(copy, page);

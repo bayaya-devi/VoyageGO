@@ -118,7 +118,7 @@ for (const locale of locales) {
       await expect.poll(() => page.locator('#destination-visual img.is-active').evaluate((image) => image.naturalWidth)).toBeGreaterThan(0);
 
       await page.locator('#country-picker').selectOption('MAR');
-      await expect(page.locator('#country-popup .country-action')).toHaveAttribute('href', new RegExp(`/${locale.code}/\\?page=explore&country=MA`));
+      await expect(page.locator('#country-popup .country-action')).toHaveAttribute('href', new RegExp(`/ma/${locale.code}/$`));
       await expect(page.locator('#country-popup')).toContainText(locale.code === 'ar' ? 'المغرب' : locale.code === 'fr' ? 'Maroc' : locale.code === 'es' ? 'Marruecos' : locale.code === 'pt' ? 'Marrocos' : 'Morocco');
 
       await page.evaluate(() => window.scrollTo(0, document.querySelector('#journey-track').offsetTop + (document.querySelector('#journey-track').offsetHeight - innerHeight) * .45));

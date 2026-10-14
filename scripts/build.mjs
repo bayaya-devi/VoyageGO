@@ -1,6 +1,7 @@
 import { cp, mkdir, readFile, writeFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import { build } from 'esbuild';
+import { africaCountries, africaLocales } from '../data/africa-countries.js';
 
 const root = resolve(import.meta.dirname, '..');
 const out = resolve(root, 'dist');
@@ -39,4 +40,20 @@ for (const file of ['index.html', 'fr/index.html', 'en/index.html', 'ar/index.ht
   const content = await readFile(path, 'utf8');
   await writeFile(path, content.replaceAll('https://bayaya-devi.github.io/VoyageGO', origin).replaceAll('https://bayaya-devi.github.io', origin));
 }
-console.log(`Built VoyageGo static assets for ${origin}.`);
+
+for (const country of africaCountries) {
+  for (const locale of africaLocales) {
+    const countryDirectory = resolve(out, country.id, locale);
+    await mkdir(countryDirectory, { recursive: true });
+    const localizedTemplate = await readFile(resolve(out, locale, 'index.html'), 'utf8');
+    const localized = localizedTemplate
+      .replace('<base href="../">', '<base href="../../">')
+      .replace(/<link rel="canonical" href="[^"]+">/, `<link rel="canonical" href="${origin}/${country.id}/${locale}/">`)
+      .replace(/<meta property="og:url" content="[^"]+">/, `<meta property="og:url" content="${origin}/${country.id}/${locale}/">`)
+      .replace(/(<link rel="alternate" hreflang="(fr|ar|en|es|pt)" href=")[^"]+(">)/g, (_, start, alternateLocale, end) => `${start}${origin}/${country.id}/${alternateLocale}/${end}`)
+      .replace(/(<link rel="alternate" hreflang="x-default" href=")[^"]+(">)/, `$1${origin}/${country.id}/fr/$2`);
+    await writeFile(resolve(countryDirectory, 'index.html'), localized);
+  }
+}
+
+console.log(`Built VoyageGo static assets for ${origin}, including ${africaCountries.length * africaLocales.length} Africa routes.`);
