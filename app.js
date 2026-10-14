@@ -18,6 +18,7 @@ let cleanupGlobe = () => {};
 let cleanupAccount = () => {};
 let cleanupHorizon = () => {};
 let cleanupPlatform = () => {};
+let renderGeneration = 0;
 
 function icon(name, className = '') {
   return `<svg class="${className}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${iconPaths[name]}</svg>`;
@@ -324,6 +325,7 @@ function bind(copy, page) {
 }
 
 async function render() {
+  const generation = ++renderGeneration;
   cleanupGlobe();
   cleanupGlobe = () => {};
   cleanupAccount();
@@ -334,9 +336,11 @@ async function render() {
   cleanupPlatform = () => {};
   const locale = localeFromPath();
   if (!locale) { location.replace(new URL(homeUrl(preferredLocale()), document.baseURI)); return; }
-  const { default: copy } = await import(`./${getDevice()}-${locale}.js`);
+  const device = getDevice();
+  document.documentElement.dataset.device = device;
+  const { default: copy } = await import(`./${device}-${locale}.js`);
+  if (generation !== renderGeneration) return;
   if (copy.lang !== locale) throw new Error(`Locale module mismatch: ${locale}`);
-  document.documentElement.dataset.device = getDevice();
   const page = currentPage();
   setMetadata(copy, page);
   if (page?.type === 'account') {
@@ -375,7 +379,11 @@ async function render() {
         location.reload();
       });
     }).catch(() => {});
-    import('./globe.js').then(({ mountGlobe }) => mountGlobe(copy)).then((cleanup) => { cleanupGlobe = cleanup; }).catch(() => {
+    import('./globe.js').then(({ mountGlobe }) => mountGlobe(copy)).then((cleanup) => {
+      if (generation !== renderGeneration) { cleanup(); return; }
+      cleanupGlobe = cleanup;
+    }).catch(() => {
+      if (generation !== renderGeneration) return;
       const status = document.querySelector('#globe-status');
       if (status) status.textContent = copy.mapUnavailable;
       const fallback = document.querySelector('#map-fallback');
@@ -387,7 +395,12 @@ async function render() {
 }
 
 window.addEventListener('popstate', render);
+let resizeFrame = 0;
 window.addEventListener('resize', () => {
-  if (localeFromPath() && getDevice() !== document.documentElement.dataset.device) render();
+  if (resizeFrame) return;
+  resizeFrame = requestAnimationFrame(() => {
+    resizeFrame = 0;
+    if (localeFromPath() && getDevice() !== document.documentElement.dataset.device) render();
+  });
 });
 render();

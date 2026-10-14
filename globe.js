@@ -164,6 +164,11 @@ export async function mountGlobe(copy) {
     if (feature) setCountry(feature, { announce: true });
   });
 
+  const constrainedDevice = (navigator.deviceMemory && navigator.deviceMemory <= 4)
+    || navigator.hardwareConcurrency <= 4
+    || window.innerWidth < 600;
+  const sphereSegments = constrainedDevice ? [88, 60] : [128, 88];
+  const minimumFrameDuration = constrainedDevice ? 40 : 32;
   let renderer;
   try {
     renderer = new THREE.WebGLRenderer({ alpha: true, antialias: false, powerPreference: 'low-power', failIfMajorPerformanceCaveat: true });
@@ -175,7 +180,7 @@ export async function mountGlobe(copy) {
     return () => {};
   }
 
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, window.innerWidth < 700 ? 1.15 : 1.35));
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, constrainedDevice ? 1 : (window.innerWidth < 700 ? 1 : 1.25)));
   renderer.setSize(window.innerWidth, window.innerHeight, false);
   renderer.outputColorSpace = THREE.SRGBColorSpace;
   renderer.setClearColor(0x000000, 0);
@@ -197,7 +202,7 @@ export async function mountGlobe(copy) {
   globe = new THREE.Group();
   scene.add(globe);
   const planet = new THREE.Mesh(
-    new THREE.SphereGeometry(1, 160, 112),
+    new THREE.SphereGeometry(1, ...sphereSegments),
     new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.93, metalness: 0.02, bumpScale: 0.018 }),
   );
   globe.add(planet);
@@ -267,6 +272,9 @@ export async function mountGlobe(copy) {
   let dragged = false;
   let lastFrame = 0;
   let active = true;
+  let stageVisible = true;
+  let pageVisible = !document.hidden;
+  let contextAvailable = true;
   let progress = 0;
   let dragX = 0;
   let dragY = 0;
@@ -275,6 +283,12 @@ export async function mountGlobe(copy) {
   let pinchDistance = null;
   const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
   globe.rotation.set(-0.04, 0, 0);
+
+  const updateActivity = () => {
+    active = stageVisible && pageVisible && contextAvailable && !disposed;
+    stage.dataset.renderState = contextAvailable ? (active ? 'running' : 'paused') : 'context-lost';
+    if (active) lastFrame = 0;
+  };
 
   const pickFeature = (event) => {
     const rect = renderer.domElement.getBoundingClientRect();
@@ -334,7 +348,7 @@ export async function mountGlobe(copy) {
   const resize = () => {
     const width = window.innerWidth;
     const height = window.innerHeight;
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, width < 700 ? 1 : 1.25));
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, constrainedDevice ? 1 : (width < 700 ? 1 : 1.25)));
     renderer.setSize(width, height, false);
     camera.aspect = width / height;
     camera.position.z = width < 700 ? 5.4 : 5.1;
@@ -350,8 +364,10 @@ export async function mountGlobe(copy) {
   const onPointerDown = (event) => {
     if (progress < .76) return;
     activePointers.set(event.pointerId, { x: event.clientX, y: event.clientY });
-    pointerDown = { x: event.clientX, y: event.clientY, lastX: event.clientX, lastY: event.clientY };
-    dragged = false;
+    if (activePointers.size === 1) {
+      pointerDown = { x: event.clientX, y: event.clientY, lastX: event.clientX, lastY: event.clientY };
+      dragged = false;
+    }
     interaction.setPointerCapture(event.pointerId);
     if (activePointers.size === 2) {
       const [a, b] = [...activePointers.values()];
@@ -359,6 +375,7 @@ export async function mountGlobe(copy) {
     }
   };
   const onPointerMove = (event) => {
+    if (pointerDown && !activePointers.has(event.pointerId)) return;
     if (!pointerDown || (event.pointerType === 'mouse' && !event.buttons)) {
       if (event.pointerType === 'mouse' && progress >= .76) interaction.classList.add('is-pointing-at-country');
       return;
@@ -381,16 +398,23 @@ export async function mountGlobe(copy) {
     pointerDown.lastX = event.clientX;
     pointerDown.lastY = event.clientY;
   };
-  const onPointerUp = (event) => {
-    if (pointerDown && !dragged) {
+  const finishPointer = (event, cancelled = false) => {
+    const wasSinglePointer = activePointers.size === 1 && activePointers.has(event.pointerId);
+    if (!cancelled && wasSinglePointer && pointerDown && !dragged) {
       const feature = pickFeature(event);
       if (feature) setCountry(feature);
     }
     activePointers.delete(event.pointerId);
-    if (activePointers.size < 2) pinchDistance = null;
-    pointerDown = null;
+    pinchDistance = null;
+    if (activePointers.size === 1) {
+      const remaining = [...activePointers.values()][0];
+      pointerDown = { x: remaining.x, y: remaining.y, lastX: remaining.x, lastY: remaining.y };
+      dragged = true;
+    } else pointerDown = null;
   };
-  const onPointerCancel = (event) => { activePointers.delete(event.pointerId); pinchDistance = null; pointerDown = null; };
+  const onPointerUp = (event) => finishPointer(event);
+  const onPointerCancel = (event) => finishPointer(event, true);
+  const resetPointers = () => { activePointers.clear(); pinchDistance = null; pointerDown = null; dragged = false; };
   const onWheel = (event) => {
     if (progress < .76) return;
     event.preventDefault();
@@ -418,21 +442,23 @@ export async function mountGlobe(copy) {
   interaction.addEventListener('pointermove', onPointerMove);
   interaction.addEventListener('pointerup', onPointerUp);
   interaction.addEventListener('pointercancel', onPointerCancel);
+  interaction.addEventListener('lostpointercapture', onPointerCancel);
   interaction.addEventListener('wheel', onWheel, { passive: false });
   interaction.addEventListener('keydown', onKeyDown);
   window.addEventListener('resize', resize, { passive: true });
   window.addEventListener('scroll', onScroll, { passive: true });
+  window.addEventListener('blur', resetPointers);
   resize();
-  const visibilityObserver = new IntersectionObserver((entries) => { active = entries.some((entry) => entry.isIntersecting); }, { threshold: 0.01 });
+  const visibilityObserver = new IntersectionObserver((entries) => { stageVisible = entries.some((entry) => entry.isIntersecting); updateActivity(); }, { threshold: 0.01 });
   visibilityObserver.observe(stage);
-  const onVisibilityChange = () => { active = !document.hidden; };
+  const onVisibilityChange = () => { pageVisible = !document.hidden; if (!pageVisible) resetPointers(); updateActivity(); };
   document.addEventListener('visibilitychange', onVisibilityChange);
   const initialPose = scenePoses().logo;
   globe.position.set(initialPose.x, initialPose.y, 0);
   globe.scale.setScalar(initialPose.scale);
 
-  renderer.setAnimationLoop((time) => {
-    if (!active || time - lastFrame < 32) return;
+  const renderFrame = (time) => {
+    if (!active || time - lastFrame < minimumFrameDuration) return;
     const elapsed = lastFrame ? Math.min((time - lastFrame) / 1000, .08) : 1 / 30;
     lastFrame = time;
     const { logo: p0, story: p1, map: p2 } = scenePoses();
@@ -452,17 +478,28 @@ export async function mountGlobe(copy) {
     stage.dataset.rotationY = globe.rotation.y.toFixed(3);
     placeInteraction();
     renderer.render(scene, camera);
-  });
+  };
+  renderer.setAnimationLoop(renderFrame);
 
   const contextLost = (event) => {
     event.preventDefault();
-    renderer.setAnimationLoop(null);
+    contextAvailable = false;
+    resetPointers();
+    updateActivity();
     const fallback = document.querySelector('#map-fallback');
     fallback.hidden = false;
     drawSvgFallback(fallback, features, copy.lang, (feature) => setCountry(feature));
     document.querySelector('#globe-status').textContent = copy.fallbackMessage;
   };
+  const contextRestored = () => {
+    contextAvailable = true;
+    const fallback = document.querySelector('#map-fallback');
+    if (fallback) fallback.hidden = true;
+    document.querySelector('#globe-status').textContent = copy.globeReady;
+    updateActivity();
+  };
   renderer.domElement.addEventListener('webglcontextlost', contextLost);
+  renderer.domElement.addEventListener('webglcontextrestored', contextRestored);
 
   document.querySelector('#globe-status').textContent = copy.globeLoading;
   return () => {
@@ -491,8 +528,12 @@ export async function mountGlobe(copy) {
     interaction.removeEventListener('pointermove', onPointerMove);
     interaction.removeEventListener('pointerup', onPointerUp);
     interaction.removeEventListener('pointercancel', onPointerCancel);
+    interaction.removeEventListener('lostpointercapture', onPointerCancel);
     interaction.removeEventListener('wheel', onWheel);
     interaction.removeEventListener('keydown', onKeyDown);
+    window.removeEventListener('blur', resetPointers);
+    renderer.domElement.removeEventListener('webglcontextlost', contextLost);
+    renderer.domElement.removeEventListener('webglcontextrestored', contextRestored);
     document.body.classList.remove('map-active');
   };
 }

@@ -330,6 +330,37 @@ test('real globe raycasting selects rotated and zoomed countries but not the oce
   await expect(page.locator('#country-picker')).toHaveValue('FJI');
 });
 
+test('globe recovers after WebGL context loss and remains interactive', async ({ page }) => {
+  await page.goto('fr/');
+  const stage=page.locator('#journey-stage');
+  const canvas=page.locator('.globe-canvas');
+  await expect(canvas).toHaveCount(1);
+  await expect(stage).toHaveAttribute('data-render-state','running');
+  await page.evaluate(()=>window.scrollTo(0,(document.querySelector('#journey-track').offsetHeight-innerHeight)*.84));
+  await expect(page.locator('#map-section')).not.toHaveAttribute('inert','');
+
+  await canvas.dispatchEvent('webglcontextlost',{cancelable:true});
+  await expect(stage).toHaveAttribute('data-render-state','context-lost');
+  await expect(page.locator('#map-fallback .atlas-fallback')).toBeVisible();
+
+  await canvas.dispatchEvent('webglcontextrestored');
+  await expect(stage).toHaveAttribute('data-render-state','running');
+  await expect(page.locator('#map-fallback .atlas-fallback')).toBeHidden();
+  await page.locator('#globe-interaction').focus();
+  const before=Number(await stage.getAttribute('data-rotation-y'));
+  await page.keyboard.press('ArrowRight');
+  await expect.poll(async()=>Number(await stage.getAttribute('data-rotation-y'))).toBeGreaterThan(before);
+});
+
+test('rapid responsive rerenders keep a single globe renderer', async ({ page }) => {
+  await page.goto('fr/');
+  await expect(page.locator('.globe-canvas')).toHaveCount(1);
+  for(const width of [790,820,780,840,760,1024]) await page.setViewportSize({width,height:820});
+  await expect(page.locator('.globe-canvas')).toHaveCount(1);
+  await expect(page.locator('#country-picker')).toHaveAttribute('data-world-loaded','true');
+  await expect(page.locator('#journey-stage')).toHaveAttribute('data-render-state','running');
+});
+
 test('system color scheme changes the interface without reloading', async ({ page }) => {
   await page.emulateMedia({ colorScheme: 'light' });
   await page.goto('fr/');
