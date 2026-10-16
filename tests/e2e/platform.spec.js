@@ -8,10 +8,15 @@ const localized = [
   ['es','Prepara sin perder el hilo.','Explora más allá de las fronteras.','Perfil de VoyageGo','ltr'],
   ['pt','Prepara sem perder o fio.','Explora além das fronteiras.','Perfil VoyageGo','ltr'],
 ];
+const publicOrigin = (process.env.PUBLIC_SITE_URL || 'https://bayaya-devi.github.io/VoyageGO').replace(/\/+$/u, '');
 
 for (const [locale,prepareTitle,exploreTitle,profileTitle,direction] of localized) {
   test(`${locale} worldwide pages remain localized and responsive`,async({page})=>{
     const errors=[]; page.on('pageerror',(error)=>errors.push(error.message));
+    const localizedDocument = await page.request.get(`${locale}/`);
+    const localizedHtml = await localizedDocument.text();
+    expect(localizedHtml).toContain(`<link rel="canonical" href="${publicOrigin}/${locale}/">`);
+    expect(localizedHtml).toContain(`<meta property="og:url" content="${publicOrigin}/${locale}/">`);
     await page.goto(`${locale}/?page=prepare`);
     await expect(page.locator('html')).toHaveAttribute('dir',direction);
     await expect(page.getByRole('heading',{level:1,name:prepareTitle})).toBeVisible();

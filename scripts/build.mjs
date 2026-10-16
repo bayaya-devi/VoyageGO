@@ -5,7 +5,10 @@ import { africaCountries, africaLocales } from '../data/africa-countries.js';
 
 const root = resolve(import.meta.dirname, '..');
 const out = resolve(root, 'dist');
-const origin = process.env.PUBLIC_SITE_URL || 'https://voyagego-0fn.pages.dev';
+// The public frontend is hosted at the repository's GitHub Pages URL.
+// Keep PUBLIC_SITE_URL available for preview builds, but never emit Cloudflare
+// Pages URLs into canonical, sitemap, or hreflang metadata by default.
+const origin = (process.env.PUBLIC_SITE_URL || 'https://bayaya-devi.github.io/VoyageGO').replace(/\/+$/u, '');
 const files = [
   'index.html', 'app.js', 'globe.js', 'horizons.js', 'go-design-system.css', 'styles.css', 'robots.txt', 'sitemap.xml', '_routes.json', '_headers',
   'ordinateur-ar.js', 'ordinateur-en.js', 'ordinateur-es.js', 'ordinateur-fr.js', 'ordinateur-pt.js',
@@ -38,7 +41,8 @@ await build({
 for (const file of ['index.html', 'fr/index.html', 'en/index.html', 'ar/index.html', 'es/index.html', 'pt/index.html', 'sitemap.xml', 'robots.txt']) {
   const path = resolve(out, file);
   const content = await readFile(path, 'utf8');
-  await writeFile(path, content.replaceAll('https://bayaya-devi.github.io/VoyageGO', origin).replaceAll('https://bayaya-devi.github.io', origin));
+  const localizedContent = content.replace(/https:\/\/(?:bayaya-devi\.github\.io(?:\/VoyageGO)?|voyagego-0fn\.pages\.dev)/gu, origin);
+  await writeFile(path, localizedContent);
 }
 
 for (const country of africaCountries) {
