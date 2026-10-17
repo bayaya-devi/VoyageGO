@@ -22,6 +22,8 @@ for (const directory of ['ar', 'en', 'es', 'fr', 'pt', 'data', 'geography', 'loc
   await cp(resolve(root, directory), resolve(out, directory), { recursive: true });
 }
 await cp(resolve(root, 'platform'), resolve(out, 'platform'), { recursive: true });
+await cp(resolve(root, 'node_modules/leaflet/dist/leaflet-src.esm.js'), resolve(out, 'vendor/leaflet-src.esm.js'));
+await cp(resolve(root, 'node_modules/leaflet/dist/leaflet.css'), resolve(out, 'vendor/leaflet.css'));
 await mkdir(resolve(out, 'auth/i18n'), { recursive: true });
 for (const file of ['auth/account-ui.js', 'auth/client.js', 'auth/validation.js']) await cp(resolve(root, file), resolve(out, file));
 await cp(resolve(root, 'auth/i18n'), resolve(out, 'auth/i18n'), { recursive: true });

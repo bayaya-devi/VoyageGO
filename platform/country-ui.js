@@ -1,3 +1,5 @@
+import { moroccoMarkup } from './morocco-ui.js';
+
 const messages = {
   fr: { africa:'VoyageGo Afrique', ready:'Interface pays disponible', registry:'Référentiel vérifié', content:'Contenu éditorial en validation', preserved:'Socle Maroc conservé', services:'Services commerciaux inactifs', intro:'Une porte d’entrée dédiée, reliée au compte VoyageGo unique.', region:'Région VoyageGo', currency:'Devise de référence', zones:'Fuseaux horaires', next:'Ce qui est disponible', honest:'Aucune offre, disponibilité ou réservation n’est publiée sans partenaire et validation réels.', prepare:'Préparer un voyage', explore:'Explorer le registre mondial', groups:{north:'Afrique du Nord',west:'Afrique de l’Ouest',central:'Afrique centrale',east:'Afrique de l’Est',southern:'Afrique australe'}, sahara:'VoyageGo présente le Maroc et le Sahara occidental dans une même expérience de voyage. Le statut international du territoire est contesté ; cette distinction reste indiquée lorsque le contexte l’exige.' },
   en: { africa:'VoyageGo Africa', ready:'Country interface available', registry:'Registry verified', content:'Editorial content under review', preserved:'Morocco foundation preserved', services:'Commercial services inactive', intro:'A dedicated gateway connected to the single VoyageGo account.', region:'VoyageGo region', currency:'Reference currency', zones:'Time zones', next:'What is available', honest:'No offer, availability or booking is published without real partners and validation.', prepare:'Plan a trip', explore:'Explore the world registry', groups:{north:'North Africa',west:'West Africa',central:'Central Africa',east:'East Africa',southern:'Southern Africa'}, sahara:'VoyageGo presents Morocco and Western Sahara as one travel experience. The territory’s international status is disputed; that distinction remains visible whenever the context requires it.' },
@@ -9,6 +11,7 @@ const messages = {
 const escapeHtml = (value) => String(value ?? '').replace(/[&<>"']/g, (character) => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' })[character]);
 
 export function countryMarkup(country, locale, pageUrl) {
+  if (country.iso2 === 'MA') return moroccoMarkup(locale, 'home', { place: new URL(location.href).searchParams.get('place') });
   const t = messages[locale];
   const contentLabel = country.contentStatus === 'published' ? t.preserved : t.content;
   return `<main id="main-content" class="platform-page country-experience" tabindex="-1" data-country-code="${country.iso2}">

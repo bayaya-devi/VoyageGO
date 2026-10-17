@@ -14,6 +14,8 @@ export default defineConfig({
     browserName: 'chromium',
     launchOptions: executablePath ? { executablePath } : {},
     trace: 'retain-on-failure',
+    screenshot: 'only-on-failure',
+    video: 'retain-on-failure',
   },
   webServer: {
     command: 'npm run build && node tests/static-server.js',

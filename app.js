@@ -354,6 +354,7 @@ async function render() {
   const page = currentPage();
   const activeCountry = page?.country || countryFromPath();
   document.documentElement.toggleAttribute('data-country-experience', Boolean(activeCountry));
+  document.documentElement.toggleAttribute('data-morocco', activeCountry?.iso2 === 'MA');
   if (activeCountry) {
     document.documentElement.style.setProperty('--country-primary', activeCountry.palette.primary);
     document.documentElement.style.setProperty('--country-secondary', activeCountry.palette.secondary);
@@ -367,6 +368,13 @@ async function render() {
     bind(copy, page);
     const { renderAccount, updateProfileBadge } = await import('./auth/account-ui.js');
     cleanupAccount = await renderAccount(app, copy, page.view, page.returnTo);
+    if (activeCountry?.iso2 === 'MA') {
+      const { bindMorocco, moroccoDockMarkup } = await import('./platform/morocco-ui.js');
+      app.insertAdjacentHTML('beforeend', moroccoDockMarkup(copy.lang, 'profile'));
+      const cleanupMorocco = await bindMorocco(copy.lang, 'profile');
+      const cleanupOriginal = cleanupAccount;
+      cleanupAccount = () => { cleanupMorocco(); cleanupOriginal(); };
+    }
     await updateProfileBadge(copy);
     document.querySelector('#main-content')?.focus({ preventScroll: true });
     return;

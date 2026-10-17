@@ -3,6 +3,7 @@ import { destinations as legacyDestinations } from '../data/countries.js';
 import { platformRequest, readHealth } from './api.js';
 import { countryMarkup } from './country-ui.js';
 import { getAfricaCountry } from '../data/africa-countries.js';
+import { bindMorocco, moroccoDockMarkup, moroccoMarkup } from './morocco-ui.js';
 
 const draftKey = 'voyagego-trip-draft-v1';
 const onboardingKey = 'voyagego-onboarding-v1';
@@ -132,6 +133,14 @@ function bindBookings(t){document.querySelectorAll('[data-booking][data-decision
 export async function renderPlatform(app, copy, route) {
   const { default:t }=await import(`./i18n/${copy.lang}.js`);
   const page=route.type;
+  const country=route.country||countryContext();
+  if(country?.iso2==='MA'&&['country','prepare','explore'].includes(page)){
+    const moroccoPage=page==='country'?'home':page;
+    const extra={place:new URL(location.href).searchParams.get('place')};
+    app.innerHTML='';
+    app.insertAdjacentHTML('beforeend',moroccoMarkup(copy.lang,moroccoPage,extra));
+    return bindMorocco(copy.lang,moroccoPage,extra);
+  }
   if(page==='country')app.insertAdjacentHTML('beforeend',countryMarkup(route.country,copy.lang,(target)=>pageUrl(copy.lang,target)));
   else if(page==='prepare')app.insertAdjacentHTML('beforeend',prepareMarkup(copy.lang,t));
   else if(page==='explore')app.insertAdjacentHTML('beforeend',await exploreMarkup(copy.lang,t));
@@ -142,6 +151,12 @@ export async function renderPlatform(app, copy, route) {
   else if(page==='bookings')app.insertAdjacentHTML('beforeend',await bookingsMarkup(copy.lang,t));
   document.querySelector('[data-platform-home]')?.addEventListener('click',(event)=>{event.preventDefault();location.assign(countryRootUrl(copy.lang));});
   if(page==='prepare')bindPrepare(t); if(page==='explore')bindExplore(); if(page==='profile')await bindProfile(t); if(page==='provider')await bindProvider(t); if(page==='listing')await bindListing(t); if(page==='bookings')bindBookings(t);
+  if(country?.iso2==='MA'){
+    app.insertAdjacentHTML('beforeend',moroccoDockMarkup(copy.lang,['profile','provider','listing','bookings','onboarding'].includes(page)?'profile':'home'));
+    const cleanupMorocco=await bindMorocco(copy.lang,page);
+    document.querySelector('#main-content')?.focus({preventScroll:true});
+    return cleanupMorocco;
+  }
   document.querySelector('#main-content')?.focus({preventScroll:true});
   return ()=>{};
 }
